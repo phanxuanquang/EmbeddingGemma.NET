@@ -16,7 +16,9 @@ namespace EmbeddingGemma.Demo
         public static async Task Main(string[] args)
         {
             const string collectionName = "planets";
-            const string modelDir = @"D:\Work\New folder\tokenizer-to-onnx-model\GemmaEmbedding\model";
+
+            // For demo purposes, we assume the model files are located in a folder named ".embedding_resources" at the solution level.
+            var modelDir = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", ".embedding_resources"));
 
             var host = Host.CreateDefaultBuilder(args)
                  .ConfigureServices(services =>
