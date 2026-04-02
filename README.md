@@ -1,11 +1,14 @@
 # EmbeddingGemma.NET
 
-A .NET library that runs Google's [EmbeddingGemma-300m](https://huggingface.co/google/embeddinggemma-300m) text embedding model **fully offline** via ONNX Runtime, wired into [Microsoft Semantic Kernel](https://learn.microsoft.com/en-us/semantic-kernel/overview/)'s `IEmbeddingGenerator` interface. No API key or internet connection required at inference time.
+![EmbeddingGemma](https://ollama.com/assets/library/embeddinggemma/9a20d963-4bf1-4177-9568-ca5d53a2d14e) 
+
+A .NET library that runs Google's [EmbeddingGemma-300m](https://huggingface.co/google/embeddinggemma-300m) text embedding model **fully offline / locally** via Semantic Kernel.
 
 **What it gives you:**
 - Local, private text embeddings (768-dimensional `float32` vectors)
 - Drop-in integration with any [Semantic Kernel Vector Store](https://learn.microsoft.com/en-us/semantic-kernel/concepts/vector-store-connectors/) (in-memory, Qdrant, Azure AI Search, etc.)
 - Semantic/vector search over your own documents
+- Very high-effiency even in low-end devices.
 
 ---
 
@@ -20,9 +23,9 @@ A .NET library that runs Google's [EmbeddingGemma-300m](https://huggingface.co/g
 
 ## Preparing the ONNX Model
 
-The pre-exported ONNX model is hosted at **[onnx-community/embeddinggemma-300m-ONNX](https://huggingface.co/onnx-community/embeddinggemma-300m-ONNX/tree/main)** on Hugging Face. No Python or export tools needed — just download the files below directly from your browser.
+The pre-exported ONNX model is hosted at **[onnx-community/embeddinggemma-300m-ONNX](https://huggingface.co/onnx-community/embeddinggemma-300m-ONNX/tree/main)** on Hugging Face. Just download the files below directly from your browser.
 
-**1. Create a local folder** (e.g. `C:\models\embeddinggemma-onnx\`).
+**1. Create a local folder** (e.g. `D:\models\embeddinggemma-onnx\`).
 
 **2. Download these 5 files into that folder:**
 
@@ -47,27 +50,7 @@ embeddinggemma-onnx/
 └── tokenizer_config.json
 ```
 
-Both `model.onnx` and `model.onnx_data` **must be in the same folder** — the ONNX runtime loads them together.
-
----
-
-## Installation
-
-This library is not yet on NuGet. Add it to your solution as a project reference:
-
-```xml
-<!-- In your .csproj -->
-<ItemGroup>
-  <ProjectReference Include="..\EmbeddingGemma.SemanticKernel\EmbeddingGemma.SemanticKernel.csproj" />
-</ItemGroup>
-```
-
-Also add the in-memory vector store connector if you want to test without a real database:
-
-```bash
-dotnet add package Microsoft.SemanticKernel.Connectors.InMemory --prerelease
-dotnet add package Microsoft.Extensions.Hosting
-```
+Both `model.onnx` and `model.onnx_data` **must be in the same folder**, the ONNX runtime loads them together.
 
 ---
 
@@ -93,7 +76,7 @@ var host = Host.CreateDefaultBuilder()
         // Register the embedding generator pointing to your ONNX model folder.
         services.AddGemmaTextEmbeddingGenerator(options =>
         {
-            options.ModelDirectory = @"C:\path\to\embeddinggemma-onnx";
+            options.ModelDirectory = @"D:\path\to\embeddinggemma-onnx";
         });
     })
     .Build();
@@ -203,39 +186,15 @@ EmbeddingGemma.NET/
     └── Program.cs
 ```
 
-### Key dependencies (EmbeddingGemma.SemanticKernel.csproj)
-
-| Package | Purpose |
-|---------|---------|
-| `Microsoft.SemanticKernel` | Vector store abstractions, SK integration |
-| `Microsoft.Extensions.VectorData.Abstractions` | `VectorStore`, `VectorStoreCollection<>` interfaces |
-| `Microsoft.ML.OnnxRuntime` | Runs the ONNX model locally |
-| `Microsoft.ML.Tokenizers` | `LlamaTokenizer` (SentencePiece tokenisation) |
-
----
-
-## How Inference Works (for maintainers)
-
-`GemmaTextEmbeddingGenerationService.RunInference()` does the following:
-
-1. **Tokenise** all input strings in batch using `LlamaTokenizer` (BOS + EOS tokens added automatically).
-2. **Pad** the batch to the longest sequence; build `input_ids` and `attention_mask` tensors.
-3. **Run** the ONNX session — outputs `[last_hidden_state, sentence_embedding]`.
-4. **Return** `output[1]` — the sentence-level embedding tensor of shape `(batch_size, 768)`.
-
-The ONNX session is a heavyweight object; it is registered as a **singleton** via DI and reused across calls. Do not create it per-request.
-
 ---
 
 ## References
 
 - [EmbeddingGemma — Google DeepMind](https://deepmind.google/models/gemma/embeddinggemma/)
-- [EmbeddingGemma-300m — Hugging Face model page](https://huggingface.co/google/embeddinggemma-300m)
-- [EmbeddingGemma — Official docs](https://ai.google.dev/gemma/docs/embeddinggemma)
-- [EmbeddingGemma tech report (arXiv:2509.20354)](https://arxiv.org/abs/2509.20354)
-- [Microsoft Semantic Kernel — Overview](https://learn.microsoft.com/en-us/semantic-kernel/overview/)
-- [Semantic Kernel — Text Embedding Generation](https://learn.microsoft.com/en-us/semantic-kernel/concepts/ai-services/embedding-generation/)
-- [Semantic Kernel — Vector Store Connectors](https://learn.microsoft.com/en-us/semantic-kernel/concepts/vector-store-connectors/)
-- [Semantic Kernel — Vector Store Text Search (RAG)](https://learn.microsoft.com/en-us/semantic-kernel/concepts/text-search/text-search-vector-stores)
-- [Optimum — ONNX Export Guide](https://huggingface.co/docs/optimum/exporters/onnx/usage_guides/export_a_model)
+- [google/embeddinggemma-300m](https://huggingface.co/google/embeddinggemma-300m)
+- [onnx-community/embeddinggemma-300m-ONNX](https://huggingface.co/onnx-community/embeddinggemma-300m-ONNX)
+- [Microsoft's Semantic Kernel](https://learn.microsoft.com/en-us/semantic-kernel/overview/)
+- [Semantic Kernel: Text Embedding Generation](https://learn.microsoft.com/en-us/semantic-kernel/concepts/ai-services/embedding-generation/)
+- [Semantic Kernel: Vector Store Connectors](https://learn.microsoft.com/en-us/semantic-kernel/concepts/vector-store-connectors/)
+- [Semantic Kernel: Vector Store Text Search (RAG)](https://learn.microsoft.com/en-us/semantic-kernel/concepts/text-search/text-search-vector-stores)
 - [Microsoft.Extensions.VectorData — NuGet](https://www.nuget.org/packages/Microsoft.Extensions.VectorData.Abstractions/)
