@@ -14,5 +14,16 @@ namespace EmbeddingGemma.SemanticKernel.Extensions
 
             return attribute.Prefix;
         }
+
+        /// <summary>
+        /// Builds the document prompt prefix <c>title: {title} | text: </c>.
+        /// Use this when you have a real document title to include, which improves
+        /// retrieval quality over the default <c>title: none | text: </c>.
+        /// </summary>
+        /// <param name="title">
+        /// The document title. Pass <see langword="null"/> or empty to fall back to "none".
+        /// </param>
+        public static string GetDocumentPrefix(string? title = null)
+            => $"title: {(string.IsNullOrWhiteSpace(title) ? "none" : title)} | text: ";
     }
 }

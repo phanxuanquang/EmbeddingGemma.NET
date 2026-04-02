@@ -1,7 +1,7 @@
 ﻿using EmbeddingGemma.SemanticKernel;
 using EmbeddingGemma.SemanticKernel.Enums;
-using EmbeddingGemma.SemanticKernel.Extensions;
 using EmbeddingGemma.SemanticKernel.Models;
+using EmbeddingGemma.SemanticKernel.Options;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -62,9 +62,10 @@ namespace EmbeddingGemma.Demo
             logger.LogInformation("Raw Query: {RawQuery}", rawQuery);
 
             logger.LogInformation("Generating embeddings for query and documents...");
-            var query = EmbeddingGemmaTaskType.Query.GetPrefix() + rawQuery;
-            var documents = rawDocuments.Select(d => EmbeddingGemmaTaskType.RetrievalDocument.GetPrefix() + d);
-            var embeddings = await embeddingGenerator.GenerateAsync(documents);
+            var embeddings = await embeddingGenerator.GenerateAsync(rawDocuments, new EmbeddingGemmaGenerationOptions
+            {
+                TaskType = EmbeddingGemmaTaskType.RetrievalDocument
+            });
             var semanticRecords = rawDocuments
                 .Zip(embeddings, (text, emb) => new EmbeddingGemmaSemanticRecord
                 {
@@ -77,7 +78,10 @@ namespace EmbeddingGemma.Demo
             await collection.UpsertAsync(semanticRecords);
 
             logger.LogInformation("Performing vector search for the query...");
-            var queryAsEmbedding = await embeddingGenerator.GenerateAsync(query);
+            var queryAsEmbedding = await embeddingGenerator.GenerateAsync(rawQuery, new EmbeddingGemmaGenerationOptions
+            {
+                TaskType = EmbeddingGemmaTaskType.RetrievalQuery
+            });
             var results = new List<(EmbeddingGemmaSemanticRecord, double)>();
 
             await foreach (var result in collection.SearchAsync(

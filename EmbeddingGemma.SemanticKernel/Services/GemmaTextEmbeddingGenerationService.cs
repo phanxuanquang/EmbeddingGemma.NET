@@ -1,4 +1,6 @@
-﻿using EmbeddingGemma.SemanticKernel.Options;
+﻿using EmbeddingGemma.SemanticKernel.Enums;
+using EmbeddingGemma.SemanticKernel.Extensions;
+using EmbeddingGemma.SemanticKernel.Options;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Options;
 using Microsoft.ML.OnnxRuntime;
@@ -79,9 +81,21 @@ namespace EmbeddingGemma.SemanticKernel.Services
             EmbeddingGenerationOptions? options = null,
             CancellationToken cancellationToken = default)
         {
+            IEnumerable<string> inputs = values;
+
+            if (options is EmbeddingGemmaGenerationOptions gemmaOptions && gemmaOptions.TaskType.HasValue)
+            {
+                var taskType = gemmaOptions.TaskType.Value;
+                var prefix = taskType is EmbeddingGemmaTaskType.Document or EmbeddingGemmaTaskType.RetrievalDocument
+                    ? EmbeddingGemmaTaskTypeExtensions.GetDocumentPrefix(gemmaOptions.DocumentTitle)
+                    : taskType.GetPrefix();
+
+                inputs = values.Select(v => prefix + v);
+            }
+
             // Run synchronous ONNX inference on a thread-pool thread to keep
             // the async signature without blocking the calling thread.
-            return await Task.Run(() => RunInference(values), cancellationToken);
+            return await Task.Run(() => RunInference(inputs), cancellationToken);
         }
 
         private GeneratedEmbeddings<Embedding<float>> RunInference(IEnumerable<string> values)

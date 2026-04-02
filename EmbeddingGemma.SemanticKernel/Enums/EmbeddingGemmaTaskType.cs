@@ -45,5 +45,11 @@ namespace EmbeddingGemma.SemanticKernel.Enums
 
         [TaskPrefix("task: summarization | query: ")]
         Summarization,
+
+        [TaskPrefix("task: question answering | query: ")]
+        QuestionAnswering,
+
+        [TaskPrefix("task: fact checking | query: ")]
+        FactVerification,
     }
 }
