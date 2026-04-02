@@ -1,11 +1,10 @@
-﻿using EmbeddingGemma.SemanticKernel;
+﻿using EmbeddingGemma.Demo.Models;
+using EmbeddingGemma.SemanticKernel;
 using EmbeddingGemma.SemanticKernel.Enums;
-using EmbeddingGemma.SemanticKernel.Models;
 using EmbeddingGemma.SemanticKernel.Options;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.VectorData;
 using Microsoft.SemanticKernel;
 
@@ -23,13 +22,7 @@ namespace EmbeddingGemma.Demo
             var host = Host.CreateDefaultBuilder(args)
                  .ConfigureServices(services =>
                  {
-                     services.AddLogging(services =>
-                     {
-                         services.AddConsole(); // Log to console for demo purposes.
-                         services.SetMinimumLevel(LogLevel.Trace);
-                     });
-
-                     // Use the default in-memory vector store for demo purposes. 
+                     // Use the in-memory vector store for quick demo purposes. 
                      services.AddInMemoryVectorStore();
 
                      services.AddGemmaTextEmbeddingGenerator(options =>
@@ -39,18 +32,13 @@ namespace EmbeddingGemma.Demo
                  })
                  .Build();
 
-            var logger = host.Services.GetRequiredService<ILogger<Program>>();
+            Console.WriteLine("Init services.");
 
-            logger.LogInformation("Init services:");
-
-            logger.LogTrace("    Vector Store: {VectorStoreType}", host.Services.GetRequiredService<VectorStore>().GetType().Name);
             var vectorStore = host.Services.GetRequiredService<VectorStore>();
 
-            logger.LogInformation("Initializing GemmaTextEmbeddingGenerationService with model directory: {ModelDir}", modelDir);
             var embeddingGenerator = host.Services.GetRequiredService<IEmbeddingGenerator<string, Embedding<float>>>();
 
-            logger.LogInformation("Ensuring collection '{CollectionName}' exists in the vector store.", collectionName);
-            var collection = vectorStore.GetCollection<Guid, EmbeddingGemmaSemanticRecord>(collectionName);
+            var collection = vectorStore.GetCollection<Guid, SemanticSearchDataModel>(collectionName);
             await collection.EnsureCollectionExistsAsync();
 
             var rawQuery = "Which planet is known as the Red Planet?";
@@ -61,41 +49,40 @@ namespace EmbeddingGemma.Demo
                 "Jupiter, the largest planet in our solar system, has a prominent red spot.",
                 "Saturn, famous for its rings, is sometimes mistaken for the Red Planet."
             };
-            logger.LogInformation("Raw Query: {RawQuery}", rawQuery);
+            Console.WriteLine($"Query: {rawQuery}");
 
-            logger.LogInformation("Generating embeddings for query and documents...");
             var embeddings = await embeddingGenerator.GenerateAsync(rawDocuments, new EmbeddingGemmaGenerationOptions
             {
                 TaskType = EmbeddingGemmaTaskType.RetrievalDocument
             });
+
             var semanticRecords = rawDocuments
-                .Zip(embeddings, (text, emb) => new EmbeddingGemmaSemanticRecord
+                .Zip(embeddings, (text, emb) => new SemanticSearchDataModel
                 {
                     Text = text,
                     Embedding = emb.Vector,
                 })
                 .ToList();
 
-            logger.LogInformation("Upserting {Count} records into the collection '{CollectionName}'...", semanticRecords.Count, collectionName);
             await collection.UpsertAsync(semanticRecords);
 
-            logger.LogInformation("Performing vector search for the query...");
-            var queryAsEmbedding = await embeddingGenerator.GenerateAsync(rawQuery, new EmbeddingGemmaGenerationOptions
-            {
-                TaskType = EmbeddingGemmaTaskType.RetrievalQuery
-            });
-            var results = new List<(EmbeddingGemmaSemanticRecord, double)>();
+            var queryAsEmbedding = await embeddingGenerator.GenerateAsync(
+                value: rawQuery,
+                options: new EmbeddingGemmaGenerationOptions
+                {
+                    TaskType = EmbeddingGemmaTaskType.RetrievalQuery
+                });
 
             await foreach (var result in collection.SearchAsync(
                 searchValue: queryAsEmbedding,
                 top: 10,
-                options: new VectorSearchOptions<EmbeddingGemmaSemanticRecord>
+                options: new VectorSearchOptions<SemanticSearchDataModel>
                 {
-                    IncludeVectors = false,
+                    IncludeVectors = false, // Exclude the embedding vectors from the search results for better performance.
                 }))
             {
                 var score = result.Score!.Value;
-                logger.LogInformation($"    {score * 100:F2}%: {result.Record.Text}");
+                Console.WriteLine($"    {score * 100:F2}%: {result.Record.Text}");
             }
 
             await host.StopAsync();

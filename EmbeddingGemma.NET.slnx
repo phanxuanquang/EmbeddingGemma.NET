@@ -1,4 +1,7 @@
 <Solution>
+  <Folder Name="/Solution Items/">
+    <File Path="README.md" />
+  </Folder>
   <Project Path="EmbeddingGemma.Demo/EmbeddingGemma.Demo.csproj" Id="ea7caec3-1594-47c4-b0c6-604699d48b58" />
   <Project Path="EmbeddingGemma.SemanticKernel/EmbeddingGemma.SemanticKernel.csproj" />
 </Solution>
