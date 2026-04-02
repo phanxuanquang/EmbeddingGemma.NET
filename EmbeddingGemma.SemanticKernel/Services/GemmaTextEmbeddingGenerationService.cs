@@ -50,11 +50,11 @@ namespace EmbeddingGemma.SemanticKernel.Services
             if (!File.Exists(modelOnnxPath))
                 throw new FileNotFoundException($"\"model.onnx\" file not found at the directory: {modelDirectory}");
 
-            var modelOnnxDataPath = Path.Combine(modelDirectory, "model.onnx.data");
+            var modelOnnxDataPath = Path.Combine(modelDirectory, "model.onnx_data");
             if (!File.Exists(modelOnnxDataPath))
-                throw new FileNotFoundException($"\"model.onnx.data\" file not found at the directory: {modelDirectory}");
+                throw new FileNotFoundException($"\"model.onnx_data\" file not found at the directory: {modelDirectory}");
 
-            _session = new InferenceSession(modelOnnxDataPath);
+            _session = new InferenceSession(modelOnnxPath);
 
             using var stream = File.OpenRead(tokenizerModelPath);
             // add_bos_token: true, add_eos_token: true per tokenizer_config.json
