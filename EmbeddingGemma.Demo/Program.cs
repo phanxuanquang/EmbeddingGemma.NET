@@ -1,7 +1,7 @@
-﻿using EmbeddingGemma.SemanticKernel.Enums;
+﻿using EmbeddingGemma.SemanticKernel;
+using EmbeddingGemma.SemanticKernel.Enums;
 using EmbeddingGemma.SemanticKernel.Extensions;
 using EmbeddingGemma.SemanticKernel.Models;
-using EmbeddingGemma.SemanticKernel.Services;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -29,6 +29,11 @@ namespace EmbeddingGemma.Demo
 
                      // Use the default in-memory vector store for demo purposes. 
                      services.AddInMemoryVectorStore();
+
+                     services.AddGemmaTextEmbeddingGenerator(options =>
+                     {
+                         options.ModelDirectory = modelDir;
+                     });
                  })
                  .Build();
 
@@ -40,7 +45,7 @@ namespace EmbeddingGemma.Demo
             var vectorStore = host.Services.GetRequiredService<VectorStore>();
 
             logger.LogInformation("Initializing GemmaTextEmbeddingGenerationService with model directory: {ModelDir}", modelDir);
-            using var embeddingGenerator = new GemmaTextEmbeddingGenerationService(modelDir);
+            var embeddingGenerator = host.Services.GetRequiredService<IEmbeddingGenerator<string, Embedding<float>>>();
 
             logger.LogInformation("Ensuring collection '{CollectionName}' exists in the vector store.", collectionName);
             var collection = vectorStore.GetCollection<Guid, EmbeddingGemmaSemanticRecord>(collectionName);

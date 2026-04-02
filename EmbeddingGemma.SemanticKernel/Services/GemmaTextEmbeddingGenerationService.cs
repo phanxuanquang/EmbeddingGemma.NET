@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.AI;
+﻿using EmbeddingGemma.SemanticKernel.Options;
+using Microsoft.Extensions.AI;
+using Microsoft.Extensions.Options;
 using Microsoft.ML.OnnxRuntime;
 using Microsoft.ML.OnnxRuntime.Tensors;
 using Microsoft.ML.Tokenizers;
@@ -13,21 +15,56 @@ namespace EmbeddingGemma.SemanticKernel.Services
 
         private const long PadTokenId = 0L; // <pad> id in Gemma vocab
 
-        public GemmaTextEmbeddingGenerationService(string modelDir)
+        /// <summary>
+        /// Initializes the service using an options instance resolved from the DI container.
+        /// </summary>
+        /// <param name="options"></param>
+        /// <exception cref="ArgumentNullException"></exception>
+        public GemmaTextEmbeddingGenerationService(IOptions<EmbeddingGemmaOptions> options) : this(options?.Value ?? throw new ArgumentNullException(nameof(options)))
         {
-            var onnxPath = Path.Combine(modelDir, "onnx", "model.onnx");
-            var tokenizerModelPath = Path.Combine(modelDir, "tokenizer.model");
+        }
 
-            _session = new InferenceSession(onnxPath);
+        public GemmaTextEmbeddingGenerationService(EmbeddingGemmaOptions options)
+        {
+            ArgumentNullException.ThrowIfNull(options);
+            var modelDirectory = options.ModelDirectory;
+
+            ArgumentException.ThrowIfNullOrWhiteSpace(modelDirectory);
+
+            if (!Directory.Exists(modelDirectory))
+                throw new DirectoryNotFoundException($"Model directory not found: {modelDirectory}");
+
+            var tokenizerJsonPath = Path.Combine(modelDirectory, "tokenizer.json");
+            if (!File.Exists(tokenizerJsonPath))
+                throw new FileNotFoundException($"\"tokenizer.json\" file not found at the directory: {modelDirectory}");
+
+            var tokenizerModelPath = Path.Combine(modelDirectory, "tokenizer.model");
+            if (!File.Exists(tokenizerModelPath))
+                throw new FileNotFoundException($"\"tokenizer.model\" file not found at the directory: {modelDirectory}");
+
+            var tokenizerConfigJsonPath = Path.Combine(modelDirectory, "tokenizer_config.json");
+            if (!File.Exists(tokenizerConfigJsonPath))
+                throw new FileNotFoundException($"\"tokenizer_config.json\" file not found at the directory: {modelDirectory}");
+
+            var modelOnnxPath = Path.Combine(modelDirectory, "model.onnx");
+            if (!File.Exists(modelOnnxPath))
+                throw new FileNotFoundException($"\"model.onnx\" file not found at the directory: {modelDirectory}");
+
+            var modelOnnxDataPath = Path.Combine(modelDirectory, "model.onnx.data");
+            if (!File.Exists(modelOnnxDataPath))
+                throw new FileNotFoundException($"\"model.onnx.data\" file not found at the directory: {modelDirectory}");
+
+            _session = new InferenceSession(modelOnnxDataPath);
 
             using var stream = File.OpenRead(tokenizerModelPath);
             // add_bos_token: true, add_eos_token: true per tokenizer_config.json
             _tokenizer = LlamaTokenizer.Create(stream, addBeginOfSentence: true, addEndOfSentence: true);
 
             _metadata = new EmbeddingGeneratorMetadata(
-                providerName: "GemmaOnnx",
-                providerUri: null,
-                defaultModelId: "gemma-embedding");
+                providerName: "Google DeepMind",
+                providerUri: new Uri("https://deepmind.google/models/gemma/embeddinggemma"),
+                defaultModelId: "embeddinggemma-300m",
+                defaultModelDimensions: 768);
         }
 
         /// <inheritdoc />
