@@ -12,7 +12,7 @@ EmbeddingGemma.NET provides two NuGet packages that plug local semantic search /
 
 | | |
 |---|---|
-| **Zero runtime cost** | Runs on CPU via ONNX Runtime — no OpenAI/Azure credits consumed |
+| **Zero runtime cost** | Runs locally on your device without further setups |
 | **Privacy-first** | Your data never leaves the machine |
 | **State-of-the-art accuracy** | [#1 open multilingual embedding model under 500 M parameters on MTEB](https://deepmind.google/models/gemma/embeddinggemma/#performance) |
 | **100+ languages compatibility** | Multilingual out-of-the-box |
