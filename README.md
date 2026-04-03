@@ -1,33 +1,41 @@
 # EmbeddingGemma.NET
 
-![EmbeddingGemma](https://ollama.com/assets/library/embeddinggemma/9a20d963-4bf1-4177-9568-ca5d53a2d14e) 
+![EmbeddingGemma](https://ollama.com/assets/library/embeddinggemma/9a20d963-4bf1-4177-9568-ca5d53a2d14e)
 
-A .NET library that runs Google's [EmbeddingGemma-300m](https://huggingface.co/google/embeddinggemma-300m) text embedding model **fully offline / locally** via Semantic Kernel.
+**Run Google DeepMind's EmbeddingGemma-300m embedding model fully locally in your .NET app — zero API cost, zero data leakage, zero cloud dependency.**
 
-**What it gives you:**
-- Local, private text embeddings (768-dimensional `float32` vectors)
-- Drop-in integration with any [Semantic Kernel Vector Store](https://learn.microsoft.com/en-us/semantic-kernel/concepts/vector-store-connectors/) (in-memory, Qdrant, Azure AI Search, etc.)
-- Semantic/vector search over your own documents
-- Very high-effiency even in low-end devices.
+EmbeddingGemma.NET provides two NuGet packages that plug local semantic search / vector search into any .NET 10 application, with first-class support for Microsoft Semantic Kernel and `Microsoft.Extensions.VectorData`.
 
 ---
 
-## Requirements
+## Why EmbeddingGemma?
 
-| Item | Version |
-|------|---------|
-| .NET | 10.0+ |
-| ONNX model files | see below |
+| | |
+|---|---|
+| **Zero runtime cost** | Runs on CPU via ONNX Runtime — no OpenAI/Azure credits consumed |
+| **Privacy-first** | Your data never leaves the machine |
+| **State-of-the-art accuracy** | [#1 open multilingual embedding model under 500 M parameters on MTEB](https://deepmind.google/models/gemma/embeddinggemma/#performance) |
+| **100+ languages compatibility** | Multilingual out-of-the-box |
+| **Instructed embeddings** | Pre-defined prompt prefixing for 15 task types (e.g., retrieval, QA, classification, clustering) |
 
 ---
 
-## Preparing the ONNX Model
+## Packages
 
-The pre-exported ONNX model is hosted at **[onnx-community/embeddinggemma-300m-ONNX](https://huggingface.co/onnx-community/embeddinggemma-300m-ONNX/tree/main)** on Hugging Face. Just download the files below directly from your browser.
+| Package | Use when… |
+|---|---|
+| `EmbeddingGemma.Core` | Building a plain .NET / ASP.NET Core app |
+| `EmbeddingGemma.SemanticKernel` | Using Microsoft Semantic Kernel |
 
-**1. Create a local folder** (e.g. `D:\models\embeddinggemma-onnx\`).
+> `EmbeddingGemma.SemanticKernel` already wraps Core. If you use Semantic Kernel, you only need that one package.
 
-**2. Download these 5 files into that folder:**
+---
+
+## Installation
+
+### Prepare the ONNX model and tokenizer files.
+
+The pre-exported ONNX model is hosted at **[onnx-community/embeddinggemma-300m-ONNX](https://huggingface.co/onnx-community/embeddinggemma-300m-ONNX/tree/main)** on Hugging Face. To run the model locally, you need to download the ONNX weights and tokenizer files as listed below:
 
 | File to download | Source path in the repo | Size |
 |-----------------|------------------------|------|
@@ -37,9 +45,8 @@ The pre-exported ONNX model is hosted at **[onnx-community/embeddinggemma-300m-O
 | `tokenizer.model` | [`tokenizer.model`](https://huggingface.co/onnx-community/embeddinggemma-300m-ONNX/resolve/main/tokenizer.model?download=true) | ~4.7 MB |
 | `tokenizer_config.json` | [`tokenizer_config.json`](https://huggingface.co/onnx-community/embeddinggemma-300m-ONNX/resolve/main/tokenizer_config.json?download=true) | ~1.2 MB |
 
-> **Tip:** Click the download link in each row, or open the repo page and click the download icon next to the file name.
 
-**3. Your folder should look like this:**
+Your folder should look like this:
 
 ```
 embeddinggemma-onnx/
@@ -50,151 +57,163 @@ embeddinggemma-onnx/
 └── tokenizer_config.json
 ```
 
-Both `model.onnx` and `model.onnx_data` **must be in the same folder**, the ONNX runtime loads them together.
+Alternatively, you can run the included PowerShell script **once** to download them from Hugging Face as well. By default, it will create a folder named `.embedding_resources` in the same directory as the script, but you can specify any path you like.
+
+```powershell
+.\Initialize-Embedding-Resources.ps1
+```
 
 ---
 
-## Quick Start
+## Installation
+
+### If your project uses Semantic Kernel:
+
+```bash
+dotnet add package EmbeddingGemma.SemanticKernel
+```
+
+### If your project does NOT use Semantic Kernel:
+
+```bash
+dotnet add package EmbeddingGemma.Core
+```
+
+---
+
+## Usage Guide
+
+#### With `IServiceCollection` (Core)
+
+```csharp
+using EmbeddingGemma.Core;
+
+builder.Services.AddGemmaTextEmbeddingGenerator(options => options.ModelDirectory = @"C:\path\to\.embedding_resources");
+```
+
+#### With Semantic Kernel (`IKernelBuilder`)
 
 ```csharp
 using EmbeddingGemma.SemanticKernel;
-using EmbeddingGemma.SemanticKernel.Enums;
-using EmbeddingGemma.SemanticKernel.Extensions;
-using EmbeddingGemma.SemanticKernel.Models;
-using Microsoft.Extensions.AI;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.VectorData;
+using Microsoft.SemanticKernel;
 
-var host = Host.CreateDefaultBuilder()
-    .ConfigureServices(services =>
-    {
-        // Register an in-memory vector store for quick prototyping.
-        // Swap with Qdrant, Azure AI Search, etc. for production.
-        services.AddInMemoryVectorStore();
+var builder = Kernel.CreateBuilder();
 
-        // Register the embedding generator pointing to your ONNX model folder.
-        services.AddGemmaTextEmbeddingGenerator(options =>
-        {
-            options.ModelDirectory = @"D:\path\to\embeddinggemma-onnx";
-        });
-    })
-    .Build();
+builder.AddGemmaTextEmbeddingGenerator(options => options.ModelDirectory = @"C:\path\to\.embedding_resources");
 
-var embeddingGenerator = host.Services.GetRequiredService<IEmbeddingGenerator<string, Embedding<float>>>();
-var vectorStore = host.Services.GetRequiredService<VectorStore>();
+var kernel = builder.Build();
 
-// 1. Create / ensure a collection exists.
-var collection = vectorStore.GetCollection<Guid, EmbeddingGemmaSemanticRecord>("my-docs");
-await collection.EnsureCollectionExistsAsync();
-
-// 2. Embed and upsert documents.
-//    Always prepend the task prefix so the model produces optimised vectors.
-var rawDocs = new[]
-{
-    "Mars is often called the Red Planet.",
-    "Venus is Earth's closest planetary neighbour.",
-};
-var docTexts = rawDocs.Select(d => EmbeddingGemmaTaskType.RetrievalDocument.GetPrefix() + d);
-var embeddings = await embeddingGenerator.GenerateAsync(docTexts);
-
-var records = rawDocs
-    .Zip(embeddings, (text, emb) => new EmbeddingGemmaSemanticRecord { Text = text, Embedding = emb.Vector })
-    .ToList();
-await collection.UpsertAsync(records);
-
-// 3. Search.
-var queryText = EmbeddingGemmaTaskType.Query.GetPrefix() + "Which planet is the Red Planet?";
-var queryEmbedding = await embeddingGenerator.GenerateAsync(queryText);
-
-await foreach (var result in collection.SearchAsync(queryEmbedding, top: 3))
-{
-    Console.WriteLine($"{result.Score * 100:F1}%  {result.Record.Text}");
-}
+var embeddingGenerator = kernel.Services.GetRequiredService<IEmbeddingGenerator<string, Embedding<float>>>();
 ```
 
 ---
 
-## Task Types and Prefixes
+## Quick Start Example
 
-EmbeddingGemma is a **task-aware** model — prepending the right prefix to your input **meaningfully improves embedding quality**. Use `EmbeddingGemmaTaskType.GetPrefix()` to get the correct string automatically.
+The following uses the built-in **in-memory vector store** (great for prototyping or desktop apps). You can swap it for any other [VectorData-compatible store](https://learn.microsoft.com/en-us/semantic-kernel/concepts/vector-store-connectors/) (Redis, Qdrant, Azure AI Search, etc.) with zero changes to embedding code.
 
-| `EmbeddingGemmaTaskType` | When to use |
-|--------------------------|-------------|
-| `Query` | A search query entered by a user |
-| `RetrievalDocument` | A document to be indexed and searched over |
-| `RetrievalQuery` | Alias of `Query` for explicit retrieval scenarios |
-| `SentenceSimilarity` / `PairClassification` | Comparing two pieces of text for similarity |
-| `Classification` / `MultilabelClassification` | Classifying text into categories |
-| `Clustering` | Grouping similar documents |
-| `InstructionRetrieval` | Code retrieval using natural language queries |
-| `Summarization` | Summarisation-oriented embeddings |
-| `BitextMining` | Cross-lingual parallel sentence detection |
-| `Document` | Generic document (no specific retrieval task) |
-
-**Rule of thumb:** use `RetrievalDocument` when indexing, `Query` when searching.
-
----
-
-## Custom Data Model
-
-`EmbeddingGemmaSemanticRecord` is the built-in record class (768-dimension, `Guid` key). If you need extra fields, a different key type, or a different vector dimension, define your own:
+The following example is referred to[the Python example in the **onnx-community/embeddinggemma-300m-ONNX**](https://huggingface.co/onnx-community/embeddinggemma-300m-ONNX#using-the-onnx-runtime-in-python) and demonstrates how to generate embeddings for a set of documents, upsert them into a vector store collection, and then search for similar documents based on a query embedding.
 
 ```csharp
+using EmbeddingGemma.Core;
+using EmbeddingGemma.Core.Enums;
+using EmbeddingGemma.Core.Options;
+using Microsoft.Extensions.AI;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.VectorData;
+using Microsoft.SemanticKernel.Connectors.InMemory;
 
-public class ArticleRecord
+// 1. Setup DI
+var services = new ServiceCollection();
+services.AddInMemoryVectorStore();
+services.AddGemmaTextEmbeddingGenerator(options => options.ModelDirectory = @"C:\path\to\.embedding_resources");
+var provider = services.BuildServiceProvider();
+
+public class SemanticDataModel
 {
     [VectorStoreKey]
-    public int Id { get; set; }
-
-    [VectorStoreData(IsIndexed = true)]
-    public string Title { get; set; } = "";
+    public long Key { get; set; }
 
     [VectorStoreData]
-    public string Body { get; set; } = "";
+    public required string Data { get; set; }
 
-    [VectorStoreVector(768)]          // must match model output (768)
+    [VectorStoreVector(768)] // EmbeddingGemma-300m produces 768-dimensional embeddings
     public ReadOnlyMemory<float> Embedding { get; set; }
+}
+
+var vectorStore = provider.GetRequiredService<VectorStore>();
+var embeddingGenerator = provider.GetRequiredService<IEmbeddingGenerator<string, Embedding<float>>>();
+
+// 2. Create a vector store collection
+var collection = vectorStore.GetCollection<Guid, string>("planets");
+
+var query = "What planet is known as the Red Planet?";
+var documents = new List<string>
+{
+   "Venus is often called Earth's twin because of its similar size and proximity.",
+   "Mars, known for its reddish appearance, is often referred to as the Red Planet.",
+   "Jupiter, the largest planet in our solar system, has a prominent red spot.",
+   "Saturn, famous for its rings, is sometimes mistaken for the Red Planet.",
+};
+
+// 3. Generate embeddings and upsert documents into the vector store
+var embededDocuments = await embeddingGenerator.GenerateAsync(
+    values: documents,
+    options: new EmbeddingGemmaGenerationOptions
+    {
+        TaskType = EmbeddingGemmaTaskType.RetrievalDocument
+    });
+
+var semanticRecords = documents
+    .Zip(embededDocuments, (doc, embedding) => new SemanticDataModel
+    {
+        Data = doc,
+        Embedding = embedding.Vector,
+    })
+    .ToList();
+
+await collection.UpsertAsync(semanticRecords);
+
+// 4. Generate embedding for the query and search for similar documents
+var embededQuery = await embeddingGenerator.GenerateAsync(
+    value: query,
+    options: new EmbeddingGemmaGenerationOptions
+    {
+        TaskType = EmbeddingGemmaTaskType.RetrievalQuery
+    });
+
+await foreach (var result in collection.SearchAsync(
+   searchValue: embededQuery,
+   top: 10, // Retrieve the top 10 most similar documents.
+   options: new VectorSearchOptions<SemanticSearchDataModel>
+   {
+       IncludeVectors = false, // Exclude the embedding vectors from the search results for better performance.
+   }))
+{
+    var similarityScore = result.Score!.Value;
+    Console.WriteLine($"Document: {result.Record.Data} | Similarity Score: {similarityScore}");
 }
 ```
 
-Then use `vectorStore.GetCollection<int, ArticleRecord>("articles")` as normal.
-
 ---
 
-## Project Structure
+## Prompting with Task Types
 
-```
-EmbeddingGemma.NET/
-├── EmbeddingGemma.SemanticKernel/      # The library (add this to your project)
-│   ├── DependencyInjection.cs          # AddGemmaTextEmbeddingGenerator() extension
-│   ├── Options/
-│   │   └── EmbeddingGemmaOptions.cs    # Config: only ModelDirectory is required
-│   ├── Services/
-│   │   └── GemmaTextEmbeddingGenerationService.cs  # Core ONNX inference logic
-│   ├── Models/
-│   │   └── EmbeddingGemmaSemanticRecord.cs          # Default vector store record
-│   ├── Enums/
-│   │   └── EmbeddingGemmaTaskType.cs                # Task type enum
-│   ├── Extensions/
-│   │   └── EmbeddingGemmaTaskTypeExtensions.cs      # .GetPrefix() helper
-│   └── Attributes/
-│       └── TaskPrefixAttribute.cs                   # Internal attribute for prefix mapping
-│
-└── EmbeddingGemma.Demo/                # Runnable demo — planets semantic search
-    └── Program.cs
-```
+Pass `EmbeddingGemmaGenerationOptions.TaskType` to get embeddings optimized for your specific use case. When omitted, no prefix is added.
 
----
+| `EmbeddingGemmaTaskType` | Best for |
+|---|---|
+| `RetrievalQuery` | User search queries |
+| `RetrievalDocument` | Documents / pages being indexed |
+| `QuestionAnswering` | Questions in a QA system |
+| `FactVerification` | Claims that need evidence lookup |
+| `Classification` | Text sentiment, spam detection, labelling |
+| `Clustering` | Grouping similar documents by topic |
+| `SentenceSimilarity` / `PairClassification` | Direct text-to-text similarity |
+| `Summarization` | Texts being summarized |
+| `InstructionRetrieval` | Natural-language → code-block search |
+| `BitextMining` | Parallel sentence detection across languages |
 
-## References
-
-- [EmbeddingGemma — Google DeepMind](https://deepmind.google/models/gemma/embeddinggemma/)
-- [google/embeddinggemma-300m](https://huggingface.co/google/embeddinggemma-300m)
-- [onnx-community/embeddinggemma-300m-ONNX](https://huggingface.co/onnx-community/embeddinggemma-300m-ONNX)
-- [Microsoft's Semantic Kernel](https://learn.microsoft.com/en-us/semantic-kernel/overview/)
-- [Semantic Kernel: Text Embedding Generation](https://learn.microsoft.com/en-us/semantic-kernel/concepts/ai-services/embedding-generation/)
-- [Semantic Kernel: Vector Store Connectors](https://learn.microsoft.com/en-us/semantic-kernel/concepts/vector-store-connectors/)
-- [Semantic Kernel: Vector Store Text Search (RAG)](https://learn.microsoft.com/en-us/semantic-kernel/concepts/text-search/text-search-vector-stores)
-- [Microsoft.Extensions.VectorData — NuGet](https://www.nuget.org/packages/Microsoft.Extensions.VectorData.Abstractions/)
+For effective usage of task types, refer to the following resources:
+* [EmbeddingGemma: Prompt Instructions](https://ai.google.dev/gemma/docs/embeddinggemma/model_card#prompt-instructions)
+* [Using Prompts with EmbeddingGemma](https://ai.google.dev/gemma/docs/embeddinggemma/inference-embeddinggemma-with-sentence-transformers#using_prompts_with_embeddinggemma)
