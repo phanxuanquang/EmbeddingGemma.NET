@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.VectorData;
 using Microsoft.SemanticKernel.Data;
 
-namespace EmbeddingGemma.Demo.Models
+namespace EmbeddingGemma.DemoApp.Models
 {
     public sealed record SemanticSearchDataModel
     {
