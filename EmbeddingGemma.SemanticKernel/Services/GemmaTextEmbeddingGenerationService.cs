@@ -18,6 +18,8 @@ namespace EmbeddingGemma.SemanticKernel.Services
         private readonly LlamaTokenizer _tokenizer;
         private readonly EmbeddingGeneratorMetadata _metadata;
 
+        private readonly bool _hasTokenTypeIds;
+        private readonly string _embeddingOutputName;
         private const long PadTokenId = 0L; // <pad> id in Gemma vocab
 
         /// <summary>
@@ -60,6 +62,8 @@ namespace EmbeddingGemma.SemanticKernel.Services
                 throw new FileNotFoundException($"\"model.onnx_data\" file not found at the directory: {modelDirectory}");
 
             _session = new InferenceSession(modelOnnxPath);
+            _hasTokenTypeIds = _session.InputMetadata.ContainsKey("token_type_ids");
+            _embeddingOutputName = _session.OutputMetadata.Keys.ElementAt(1);
 
             using var stream = File.OpenRead(tokenizerModelPath);
 
@@ -79,10 +83,7 @@ namespace EmbeddingGemma.SemanticKernel.Services
         public object? GetService(Type serviceType, object? key = null) => serviceType.IsInstanceOfType(this) ? this : null;
 
         /// <inheritdoc />
-        public async Task<GeneratedEmbeddings<Embedding<float>>> GenerateAsync(
-            IEnumerable<string> values,
-            EmbeddingGenerationOptions? options = null,
-            CancellationToken cancellationToken = default)
+        public async Task<GeneratedEmbeddings<Embedding<float>>> GenerateAsync(IEnumerable<string> values, EmbeddingGenerationOptions? options = null, CancellationToken cancellationToken = default)
         {
             IEnumerable<string> inputs = values;
 
@@ -96,8 +97,6 @@ namespace EmbeddingGemma.SemanticKernel.Services
                 inputs = values.Select(v => prefix + v);
             }
 
-            // Run synchronous ONNX inference on a thread-pool thread to keep
-            // the async signature without blocking the calling thread.
             return await Task.Run(() => RunInference(inputs), cancellationToken);
         }
 
@@ -115,48 +114,36 @@ namespace EmbeddingGemma.SemanticKernel.Services
             for (int i = 0; i < batchSize; i++)
             {
                 IReadOnlyList<int> ids = encodings[i];
-                for (int j = 0; j < maxLen; j++)
+                int seqLen = ids.Count;
+                int rowOffset = i * maxLen;
+                for (int j = 0; j < seqLen; j++)
                 {
-                    if (j < ids.Count)
-                    {
-                        inputIds[i * maxLen + j] = ids[j];
-                        attentionMask[i * maxLen + j] = 1L;
-                    }
-                    else
-                    {
-                        inputIds[i * maxLen + j] = PadTokenId;
-                        attentionMask[i * maxLen + j] = 0L;
-                    }
+                    inputIds[rowOffset + j] = ids[j];
+                    attentionMask[rowOffset + j] = 1L;
                 }
             }
 
             int[] dims = [batchSize, maxLen];
-            var onnxInputs = new List<NamedOnnxValue>
+            var onnxInputs = new List<NamedOnnxValue>(_hasTokenTypeIds ? 3 : 2)
             {
                 NamedOnnxValue.CreateFromTensor("input_ids", new DenseTensor<long>(inputIds, dims)),
                 NamedOnnxValue.CreateFromTensor("attention_mask", new DenseTensor<long>(attentionMask, dims)),
             };
 
-            if (_session.InputMetadata.ContainsKey("token_type_ids"))
+            if (_hasTokenTypeIds)
             {
                 onnxInputs.Add(NamedOnnxValue.CreateFromTensor("token_type_ids", new DenseTensor<long>(new long[batchSize * maxLen], dims)));
             }
 
-            // output[1] is the sentence embedding tensor (batch_size × embedding_dim)
-            using var results = _session.Run(onnxInputs);
-            var embeddingTensor = results.ToList()[1].AsTensor<float>();
+            using var results = _session.Run(onnxInputs, [_embeddingOutputName]);
+            var embeddingTensor = (DenseTensor<float>)results[0].AsTensor<float>();
             int embeddingDim = embeddingTensor.Dimensions[1];
 
-            var embeddings = new GeneratedEmbeddings<Embedding<float>>();
+            var buffer = embeddingTensor.Buffer;
+            var embeddings = new GeneratedEmbeddings<Embedding<float>>(batchSize);
             for (int i = 0; i < batchSize; i++)
             {
-                var vector = new float[embeddingDim];
-                for (int j = 0; j < embeddingDim; j++)
-                {
-                    vector[j] = embeddingTensor[i, j];
-                }
-
-                embeddings.Add(new Embedding<float>(vector));
+                embeddings.Add(new Embedding<float>(buffer.Slice(i * embeddingDim, embeddingDim).ToArray()));
             }
 
             return embeddings;
