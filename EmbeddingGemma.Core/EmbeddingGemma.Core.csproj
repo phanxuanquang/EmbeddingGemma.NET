@@ -1,16 +1,15 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
+    <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <Version>1.0.0</Version>
     <PackageIcon>icon.png</PackageIcon>
     <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <PackageTags>semantic kernel;onnx;gemma;embeddings;vector search;text search;embeddinggemma;semantic search</PackageTags>
     <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
+    <PackageTags>semantic kernel;onnx;gemma;embeddings;vector search;text search;embeddinggemma;semantic search</PackageTags>
     <Title>embeddinggemma-300m for .NET</Title>
     <Description>The .NET SKD to integrate local semantic search using Google's EmbeddingGemma model</Description>
     <Copyright>© 2026 Phan Xuan Quang / EmbeddingGemma for .NET</Copyright>
@@ -21,6 +20,10 @@
 
   <ItemGroup>
     <None Include="..\icon.png">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+    <None Include="..\README.md">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
     </None>
