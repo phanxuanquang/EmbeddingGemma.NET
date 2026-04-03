@@ -6,6 +6,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.ML.OnnxRuntime;
 using Microsoft.ML.OnnxRuntime.Tensors;
 using Microsoft.ML.Tokenizers;
+using System.Buffers;
 
 namespace EmbeddingGemma.SemanticKernel.Services
 {
@@ -20,7 +21,6 @@ namespace EmbeddingGemma.SemanticKernel.Services
 
         private readonly bool _hasTokenTypeIds;
         private readonly string _embeddingOutputName;
-        private const long PadTokenId = 0L; // <pad> id in Gemma vocab
 
         /// <summary>
         /// Initializes the service using an options instance resolved from the DI container.
@@ -61,9 +61,20 @@ namespace EmbeddingGemma.SemanticKernel.Services
             if (!File.Exists(modelOnnxDataPath))
                 throw new FileNotFoundException($"\"model.onnx_data\" file not found at the directory: {modelDirectory}");
 
-            _session = new InferenceSession(modelOnnxPath);
+            var sessionOptions = new SessionOptions
+            {
+                GraphOptimizationLevel = GraphOptimizationLevel.ORT_ENABLE_ALL,
+                ExecutionMode = ExecutionMode.ORT_SEQUENTIAL,
+            };
+
+            _session = new InferenceSession(modelOnnxPath, sessionOptions);
             _hasTokenTypeIds = _session.InputMetadata.ContainsKey("token_type_ids");
-            _embeddingOutputName = _session.OutputMetadata.Keys.ElementAt(1);
+
+            var outputKeys = _session.OutputMetadata.Keys.ToList();
+            if (outputKeys.Count < 2)
+                throw new InvalidOperationException($"Expected at least 2 model outputs (last_hidden_state + pooled embedding), but found: {string.Join(", ", outputKeys)}");
+
+            _embeddingOutputName = outputKeys[1];
 
             using var stream = File.OpenRead(tokenizerModelPath);
 
@@ -97,56 +108,77 @@ namespace EmbeddingGemma.SemanticKernel.Services
                 inputs = values.Select(v => prefix + v);
             }
 
-            return await Task.Run(() => RunInference(inputs), cancellationToken);
+            return await Task.Run(() => RunInference(inputs, cancellationToken), cancellationToken);
         }
 
-        private GeneratedEmbeddings<Embedding<float>> RunInference(IEnumerable<string> values)
+        private GeneratedEmbeddings<Embedding<float>> RunInference(IEnumerable<string> values, CancellationToken cancellationToken = default)
         {
             var texts = values.ToArray();
-            var encodings = texts.Select(t => _tokenizer.EncodeToIds(t)).ToArray();
-
             int batchSize = texts.Length;
+
+            var encodings = new IReadOnlyList<int>[batchSize];
+            Parallel.For(0, batchSize, i =>
+            {
+                encodings[i] = _tokenizer.EncodeToIds(texts[i]);
+            });
+
+            cancellationToken.ThrowIfCancellationRequested();
+
             int maxLen = encodings.Max(e => e.Count);
+            int totalSize = batchSize * maxLen;
 
-            var inputIds = new long[batchSize * maxLen];
-            var attentionMask = new long[batchSize * maxLen];
+            var inputIds = ArrayPool<long>.Shared.Rent(totalSize);
+            var attentionMask = ArrayPool<long>.Shared.Rent(totalSize);
 
-            for (int i = 0; i < batchSize; i++)
+            try
             {
-                IReadOnlyList<int> ids = encodings[i];
-                int seqLen = ids.Count;
-                int rowOffset = i * maxLen;
-                for (int j = 0; j < seqLen; j++)
+                Array.Clear(inputIds, 0, totalSize);
+                Array.Clear(attentionMask, 0, totalSize);
+
+                for (int i = 0; i < batchSize; i++)
                 {
-                    inputIds[rowOffset + j] = ids[j];
-                    attentionMask[rowOffset + j] = 1L;
+                    IReadOnlyList<int> ids = encodings[i];
+                    int seqLen = ids.Count;
+                    int rowOffset = i * maxLen;
+                    for (int j = 0; j < seqLen; j++)
+                    {
+                        inputIds[rowOffset + j] = ids[j];
+                        attentionMask[rowOffset + j] = 1L;
+                    }
                 }
+
+                cancellationToken.ThrowIfCancellationRequested();
+
+                int[] dims = [batchSize, maxLen];
+                var onnxInputs = new List<NamedOnnxValue>(_hasTokenTypeIds ? 3 : 2)
+                {
+                    NamedOnnxValue.CreateFromTensor("input_ids", new DenseTensor<long>(new Memory<long>(inputIds, 0, totalSize), dims)),
+                    NamedOnnxValue.CreateFromTensor("attention_mask", new DenseTensor<long>(new Memory<long>(attentionMask, 0, totalSize), dims)),
+                };
+
+                if (_hasTokenTypeIds)
+                {
+                    onnxInputs.Add(NamedOnnxValue.CreateFromTensor("token_type_ids", new DenseTensor<long>(new long[totalSize], dims)));
+                }
+
+                using var results = _session.Run(onnxInputs, [_embeddingOutputName]);
+                var embeddingTensor = (DenseTensor<float>)results[0].AsTensor<float>();
+                int embeddingDim = embeddingTensor.Dimensions[1];
+
+                var buffer = embeddingTensor.Buffer;
+                var embeddings = new GeneratedEmbeddings<Embedding<float>>(batchSize);
+                for (int i = 0; i < batchSize; i++)
+                {
+                    embeddings.Add(new Embedding<float>(buffer.Slice(i * embeddingDim, embeddingDim).ToArray()));
+                }
+
+                return embeddings;
             }
-
-            int[] dims = [batchSize, maxLen];
-            var onnxInputs = new List<NamedOnnxValue>(_hasTokenTypeIds ? 3 : 2)
+            finally
             {
-                NamedOnnxValue.CreateFromTensor("input_ids", new DenseTensor<long>(inputIds, dims)),
-                NamedOnnxValue.CreateFromTensor("attention_mask", new DenseTensor<long>(attentionMask, dims)),
-            };
-
-            if (_hasTokenTypeIds)
-            {
-                onnxInputs.Add(NamedOnnxValue.CreateFromTensor("token_type_ids", new DenseTensor<long>(new long[batchSize * maxLen], dims)));
+                ArrayPool<long>.Shared.Return(inputIds);
+                ArrayPool<long>.Shared.Return(attentionMask);
             }
-
-            using var results = _session.Run(onnxInputs, [_embeddingOutputName]);
-            var embeddingTensor = (DenseTensor<float>)results[0].AsTensor<float>();
-            int embeddingDim = embeddingTensor.Dimensions[1];
-
-            var buffer = embeddingTensor.Buffer;
-            var embeddings = new GeneratedEmbeddings<Embedding<float>>(batchSize);
-            for (int i = 0; i < batchSize; i++)
-            {
-                embeddings.Add(new Embedding<float>(buffer.Slice(i * embeddingDim, embeddingDim).ToArray()));
-            }
-
-            return embeddings;
         }
 
         /// <inheritdoc />

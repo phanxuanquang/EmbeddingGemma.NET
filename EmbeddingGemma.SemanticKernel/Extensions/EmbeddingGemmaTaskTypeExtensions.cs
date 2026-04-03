@@ -19,7 +19,11 @@ namespace EmbeddingGemma.SemanticKernel.Extensions
                 ? prefix
                 : throw new InvalidOperationException($"No {nameof(TaskPrefixAttribute)} on {value}.");
 
+        private static readonly string _defaultDocumentPrefix = "title: none | text: ";
+
         public static string GetDocumentPrefix(string? title = null)
-            => $"title: {(string.IsNullOrWhiteSpace(title) ? "none" : title)} | text: ";
+            => string.IsNullOrWhiteSpace(title)
+                ? _defaultDocumentPrefix
+                : $"title: {title} | text: ";
     }
 }

@@ -46,6 +46,7 @@
             SearchBox.PlaceholderText = "Enter your query";
             SearchBox.Size = new Size(843, 39);
             SearchBox.TabIndex = 1;
+            SearchBox.KeyDown += SearchBox_KeyDown;
             // 
             // SearchButton
             // 
