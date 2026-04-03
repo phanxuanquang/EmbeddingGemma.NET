@@ -32,6 +32,7 @@
             SearchButton = new Button();
             ResultGridView = new DataGridView();
             ExecutionTimeLabel = new Label();
+            BrowserCombobox = new ComboBox();
             ((System.ComponentModel.ISupportInitialize)ResultGridView).BeginInit();
             SuspendLayout();
             // 
@@ -39,10 +40,11 @@
             // 
             SearchBox.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             SearchBox.Font = new Font("Segoe UI", 12F);
-            SearchBox.Location = new Point(17, 27);
+            SearchBox.Location = new Point(174, 27);
             SearchBox.Margin = new Padding(4, 5, 4, 5);
             SearchBox.Name = "SearchBox";
-            SearchBox.Size = new Size(1000, 39);
+            SearchBox.PlaceholderText = "Enter your query";
+            SearchBox.Size = new Size(843, 39);
             SearchBox.TabIndex = 1;
             // 
             // SearchButton
@@ -88,11 +90,24 @@
             ExecutionTimeLabel.Text = "Execution Time: 0";
             ExecutionTimeLabel.TextAlign = ContentAlignment.BottomRight;
             // 
+            // BrowserCombobox
+            // 
+            BrowserCombobox.DropDownStyle = ComboBoxStyle.DropDownList;
+            BrowserCombobox.Font = new Font("Segoe UI", 12F);
+            BrowserCombobox.FormattingEnabled = true;
+            BrowserCombobox.Location = new Point(17, 27);
+            BrowserCombobox.Name = "BrowserCombobox";
+            BrowserCombobox.Size = new Size(150, 40);
+            BrowserCombobox.Sorted = true;
+            BrowserCombobox.TabIndex = 5;
+            BrowserCombobox.SelectedIndexChanged += BrowserCombobox_SelectedIndexChanged;
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(10F, 25F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1143, 750);
+            Controls.Add(BrowserCombobox);
             Controls.Add(ExecutionTimeLabel);
             Controls.Add(ResultGridView);
             Controls.Add(SearchButton);
@@ -113,5 +128,6 @@
         private TextBox SearchBox;
         private Button SearchButton;
         private Label ExecutionTimeLabel;
+        private ComboBox BrowserCombobox;
     }
 }

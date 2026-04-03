@@ -1,3 +1,4 @@
+using EmbeddingGemma.DemoApp.Services;
 using EmbeddingGemma.SemanticKernel;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -7,13 +8,10 @@ namespace EmbeddingGemma.DemoApp
 {
     internal static class Program
     {
-        /// <summary>
-        ///  The main entry point for the application.
-        /// </summary>
         [STAThread]
         static void Main()
         {
-            // For demo purposes, we assume the model files are located in a folder named ".embedding_resources" at the solution level.
+            // For demo purposes, let's assume the model files are located in a folder named ".embedding_resources" at the solution level.
             var modelDir = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", ".embedding_resources"));
 
             var host = Host.CreateDefaultBuilder()
@@ -26,6 +24,8 @@ namespace EmbeddingGemma.DemoApp
                     {
                         options.ModelDirectory = modelDir;
                     });
+
+                    services.AddScoped<IBrowserHistoryService, BrowserHistoryService>();
 
                     services.AddTransient<Form1>();
                 })
