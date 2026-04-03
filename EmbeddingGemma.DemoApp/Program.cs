@@ -1,5 +1,5 @@
+using EmbeddingGemma.Core;
 using EmbeddingGemma.DemoApp.Services;
-using EmbeddingGemma.SemanticKernel;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.SemanticKernel;
@@ -27,12 +27,12 @@ namespace EmbeddingGemma.DemoApp
 
                     services.AddScoped<IBrowserHistoryService, BrowserHistoryService>();
 
-                    services.AddTransient<Form1>();
+                    services.AddTransient<MainForm>();
                 })
                 .Build();
 
             ApplicationConfiguration.Initialize();
-            Application.Run(host.Services.GetRequiredService<Form1>());
+            Application.Run(host.Services.GetRequiredService<MainForm>());
         }
     }
 }

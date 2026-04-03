@@ -1,6 +1,6 @@
-﻿using EmbeddingGemma.SemanticKernel.Enums;
-using EmbeddingGemma.SemanticKernel.Extensions;
-using EmbeddingGemma.SemanticKernel.Options;
+﻿using EmbeddingGemma.Core.Enums;
+using EmbeddingGemma.Core.Extensions;
+using EmbeddingGemma.Core.Options;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Options;
 using Microsoft.ML.OnnxRuntime;
@@ -8,7 +8,7 @@ using Microsoft.ML.OnnxRuntime.Tensors;
 using Microsoft.ML.Tokenizers;
 using System.Buffers;
 
-namespace EmbeddingGemma.SemanticKernel.Services
+namespace EmbeddingGemma.Core.Services
 {
     /// <summary>
     /// Text embedding generation service that uses the EmbeddingGemma-300m model via ONNX Runtime.

@@ -1,14 +1,14 @@
+using EmbeddingGemma.Core.Enums;
+using EmbeddingGemma.Core.Options;
 using EmbeddingGemma.DemoApp.Models;
 using EmbeddingGemma.DemoApp.Services;
-using EmbeddingGemma.SemanticKernel.Enums;
-using EmbeddingGemma.SemanticKernel.Options;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.VectorData;
 using System.Diagnostics;
 
 namespace EmbeddingGemma.DemoApp
 {
-    public partial class Form1 : Form
+    public partial class MainForm : Form
     {
         private readonly VectorStoreCollection<Guid, SemanticSearchDataModel> _vectorStoreCollection;
         private readonly IEmbeddingGenerator<string, Embedding<float>> _embeddingGenerator;
@@ -16,7 +16,7 @@ namespace EmbeddingGemma.DemoApp
 
         private readonly List<BrowserHistoryEntry> _browserHistoryEntries;
 
-        public Form1(VectorStore vectorStore, IEmbeddingGenerator<string, Embedding<float>> embeddingGenerator, IBrowserHistoryService browserHistoryService)
+        public MainForm(VectorStore vectorStore, IEmbeddingGenerator<string, Embedding<float>> embeddingGenerator, IBrowserHistoryService browserHistoryService)
         {
             _vectorStoreCollection = vectorStore.GetCollection<Guid, SemanticSearchDataModel>(nameof(_browserHistoryEntries));
             _embeddingGenerator = embeddingGenerator;

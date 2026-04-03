@@ -1,6 +1,6 @@
-﻿using EmbeddingGemma.SemanticKernel.Attributes;
+﻿using EmbeddingGemma.Core.Attributes;
 
-namespace EmbeddingGemma.SemanticKernel.Enums
+namespace EmbeddingGemma.Core.Enums
 {
     public enum EmbeddingGemmaTaskType : byte
     {

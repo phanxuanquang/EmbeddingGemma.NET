@@ -1,9 +1,9 @@
-﻿using EmbeddingGemma.SemanticKernel.Attributes;
-using EmbeddingGemma.SemanticKernel.Enums;
+﻿using EmbeddingGemma.Core.Attributes;
+using EmbeddingGemma.Core.Enums;
 using System.Collections.Frozen;
 using System.Reflection;
 
-namespace EmbeddingGemma.SemanticKernel.Extensions
+namespace EmbeddingGemma.Core.Extensions
 {
     public static class EmbeddingGemmaTaskTypeExtensions
     {

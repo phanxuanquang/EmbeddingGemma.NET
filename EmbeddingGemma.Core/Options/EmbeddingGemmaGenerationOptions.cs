@@ -1,7 +1,7 @@
-using EmbeddingGemma.SemanticKernel.Enums;
+using EmbeddingGemma.Core.Enums;
 using Microsoft.Extensions.AI;
 
-namespace EmbeddingGemma.SemanticKernel.Options;
+namespace EmbeddingGemma.Core.Options;
 
 /// <summary>
 /// EmbeddingGemma-specific generation options that extend

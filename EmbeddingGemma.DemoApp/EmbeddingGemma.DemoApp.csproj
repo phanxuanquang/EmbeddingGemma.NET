@@ -16,7 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\EmbeddingGemma.SemanticKernel\EmbeddingGemma.SemanticKernel.csproj" />
+    <ProjectReference Include="..\EmbeddingGemma.Core\EmbeddingGemma.Core.csproj" />
   </ItemGroup>
 
 </Project>

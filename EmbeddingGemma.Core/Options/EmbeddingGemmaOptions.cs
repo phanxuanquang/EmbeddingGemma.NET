@@ -1,9 +1,9 @@
-﻿namespace EmbeddingGemma.SemanticKernel.Options;
+﻿namespace EmbeddingGemma.Core.Options;
 
 /// <summary>
 /// The options used to configure <see cref="GemmaTextEmbeddingGenerationService"/>. Currently
 /// </summary>
-public sealed class EmbeddingGemmaOptions
+public class EmbeddingGemmaOptions
 {
     /// <summary>
     /// The directory where the model files are stored. This is required and must be set by the caller.

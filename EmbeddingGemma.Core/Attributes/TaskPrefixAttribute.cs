@@ -1,4 +1,4 @@
-﻿namespace EmbeddingGemma.SemanticKernel.Attributes
+﻿namespace EmbeddingGemma.Core.Attributes
 {
     internal class TaskPrefixAttribute(string prefix) : Attribute
     {
