@@ -13,9 +13,7 @@ public static class DependencyInjection
     /// </summary>
     /// <param name="services">The service collection to add to.</param>
     /// <param name="configure">Delegate that sets <see cref="EmbeddingGemmaOptions.ModelDirectory"/>.</param>
-    public static IServiceCollection AddGemmaTextEmbeddingGenerator(
-        this IServiceCollection services,
-        Action<EmbeddingGemmaOptions> configure)
+    public static IServiceCollection AddGemmaTextEmbeddingGenerator(this IServiceCollection services, Action<EmbeddingGemmaOptions> configure)
     {
         ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(configure);

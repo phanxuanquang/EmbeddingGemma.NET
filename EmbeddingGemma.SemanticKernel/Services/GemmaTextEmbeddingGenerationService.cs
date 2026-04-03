@@ -9,6 +9,9 @@ using Microsoft.ML.Tokenizers;
 
 namespace EmbeddingGemma.SemanticKernel.Services
 {
+    /// <summary>
+    /// Text embedding generation service that uses the EmbeddingGemma-300m model via ONNX Runtime.
+    /// </summary>
     public sealed class GemmaTextEmbeddingGenerationService : IEmbeddingGenerator<string, Embedding<float>>
     {
         private readonly InferenceSession _session;
@@ -59,7 +62,7 @@ namespace EmbeddingGemma.SemanticKernel.Services
             _session = new InferenceSession(modelOnnxPath);
 
             using var stream = File.OpenRead(tokenizerModelPath);
-            // add_bos_token: true, add_eos_token: true per tokenizer_config.json
+
             _tokenizer = LlamaTokenizer.Create(stream, addBeginOfSentence: true, addEndOfSentence: true);
 
             _metadata = new EmbeddingGeneratorMetadata(
