@@ -20,17 +20,6 @@ EmbeddingGemma.NET provides two NuGet packages that plug local semantic search /
 
 ---
 
-## Packages
-
-| Package | Use when… |
-|---|---|
-| `EmbeddingGemma.Core` | Building a plain .NET / ASP.NET Core app |
-| `EmbeddingGemma.SemanticKernel` | Using Microsoft Semantic Kernel |
-
-> `EmbeddingGemma.SemanticKernel` already wraps Core. If you use Semantic Kernel, you only need that one package.
-
----
-
 ## Installation
 
 ### Prepare the ONNX model and tokenizer files.
@@ -66,6 +55,11 @@ Alternatively, you can run the included PowerShell script **once** to download t
 ---
 
 ## Installation
+
+| Package | Use when… |
+|---|---|
+| `EmbeddingGemma.Core` | Building a plain .NET / ASP.NET Core app |
+| `EmbeddingGemma.SemanticKernel` | Using Microsoft Semantic Kernel |
 
 ### If your project uses Semantic Kernel:
 
@@ -104,95 +98,6 @@ builder.AddGemmaTextEmbeddingGenerator(options => options.ModelDirectory = @"C:\
 var kernel = builder.Build();
 
 var embeddingGenerator = kernel.Services.GetRequiredService<IEmbeddingGenerator<string, Embedding<float>>>();
-```
-
----
-
-## Quick Start Example
-
-The following uses the built-in **in-memory vector store** (great for prototyping or desktop apps). You can swap it for any other [VectorData-compatible store](https://learn.microsoft.com/en-us/semantic-kernel/concepts/vector-store-connectors/) (Redis, Qdrant, Azure AI Search, etc.) with zero changes to embedding code.
-
-The following example is referred to[the Python example in the **onnx-community/embeddinggemma-300m-ONNX**](https://huggingface.co/onnx-community/embeddinggemma-300m-ONNX#using-the-onnx-runtime-in-python) and demonstrates how to generate embeddings for a set of documents, upsert them into a vector store collection, and then search for similar documents based on a query embedding.
-
-```csharp
-using EmbeddingGemma.Core;
-using EmbeddingGemma.Core.Enums;
-using EmbeddingGemma.Core.Options;
-using Microsoft.Extensions.AI;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.VectorData;
-using Microsoft.SemanticKernel.Connectors.InMemory;
-
-// 1. Setup DI
-var services = new ServiceCollection();
-services.AddInMemoryVectorStore();
-services.AddGemmaTextEmbeddingGenerator(options => options.ModelDirectory = @"C:\path\to\.embedding_resources");
-var provider = services.BuildServiceProvider();
-
-public class SemanticDataModel
-{
-    [VectorStoreKey]
-    public long Key { get; set; }
-
-    [VectorStoreData]
-    public required string Data { get; set; }
-
-    [VectorStoreVector(768)] // EmbeddingGemma-300m produces 768-dimensional embeddings
-    public ReadOnlyMemory<float> Embedding { get; set; }
-}
-
-var vectorStore = provider.GetRequiredService<VectorStore>();
-var embeddingGenerator = provider.GetRequiredService<IEmbeddingGenerator<string, Embedding<float>>>();
-
-// 2. Create a vector store collection
-var collection = vectorStore.GetCollection<Guid, string>("planets");
-
-var query = "What planet is known as the Red Planet?";
-var documents = new List<string>
-{
-   "Venus is often called Earth's twin because of its similar size and proximity.",
-   "Mars, known for its reddish appearance, is often referred to as the Red Planet.",
-   "Jupiter, the largest planet in our solar system, has a prominent red spot.",
-   "Saturn, famous for its rings, is sometimes mistaken for the Red Planet.",
-};
-
-// 3. Generate embeddings and upsert documents into the vector store
-var embededDocuments = await embeddingGenerator.GenerateAsync(
-    values: documents,
-    options: new EmbeddingGemmaGenerationOptions
-    {
-        TaskType = EmbeddingGemmaTaskType.RetrievalDocument
-    });
-
-var semanticRecords = documents
-    .Zip(embededDocuments, (doc, embedding) => new SemanticDataModel
-    {
-        Data = doc,
-        Embedding = embedding.Vector,
-    })
-    .ToList();
-
-await collection.UpsertAsync(semanticRecords);
-
-// 4. Generate embedding for the query and search for similar documents
-var embededQuery = await embeddingGenerator.GenerateAsync(
-    value: query,
-    options: new EmbeddingGemmaGenerationOptions
-    {
-        TaskType = EmbeddingGemmaTaskType.RetrievalQuery
-    });
-
-await foreach (var result in collection.SearchAsync(
-   searchValue: embededQuery,
-   top: 10, // Retrieve the top 10 most similar documents.
-   options: new VectorSearchOptions<SemanticSearchDataModel>
-   {
-       IncludeVectors = false, // Exclude the embedding vectors from the search results for better performance.
-   }))
-{
-    var similarityScore = result.Score!.Value;
-    Console.WriteLine($"Document: {result.Record.Data} | Similarity Score: {similarityScore}");
-}
 ```
 
 ---
