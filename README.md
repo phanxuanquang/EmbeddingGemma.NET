@@ -14,9 +14,10 @@ Two NuGet packages are available: one for general .NET applications and one for 
 
 | | |
 |---|---|
-| **No runtime cost** | Runs on-device via ONNX Runtime — no API calls or external services required |
-| **Privacy-first** | All inference is performed locally; no data leaves the machine |
-| **High accuracy** | [Ranked #1 among open multilingual embedding models under 500 M parameters on MTEB](https://deepmind.google/models/gemma/embeddinggemma/#performance) |
+| **No runtime cost** | Runs on-device, no API calls or external services required |
+| **Privacy first** | All inference is performed locally; no data leaves the machine |
+| **Top-class accuracy** | GemmaEmbedding is the [top #1 ranked among open multilingual embedding models under 500M parameters on MTEB](https://deepmind.google/models/gemma/embeddinggemma/#performance) |
+| **High efficiency** | Be able to run on low-end devices without GPU and with as little as 4 GB of RAM, making it ideal for a wide range of applications and users |
 | **Multilingual** | Supports 100+ languages out of the box |
 | **Task-aware embeddings** | 15 built-in task types automatically apply the correct prompt prefix |
 
