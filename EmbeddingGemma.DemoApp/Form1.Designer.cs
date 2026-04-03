@@ -31,6 +31,7 @@
             SearchBox = new TextBox();
             SearchButton = new Button();
             ResultGridView = new DataGridView();
+            ExecutionTimeLabel = new Label();
             ((System.ComponentModel.ISupportInitialize)ResultGridView).BeginInit();
             SuspendLayout();
             // 
@@ -38,18 +39,20 @@
             // 
             SearchBox.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             SearchBox.Font = new Font("Segoe UI", 12F);
-            SearchBox.Location = new Point(12, 16);
+            SearchBox.Location = new Point(17, 27);
+            SearchBox.Margin = new Padding(4, 5, 4, 5);
             SearchBox.Name = "SearchBox";
-            SearchBox.Size = new Size(695, 29);
+            SearchBox.Size = new Size(1000, 39);
             SearchBox.TabIndex = 1;
             // 
             // SearchButton
             // 
             SearchButton.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             SearchButton.Font = new Font("Segoe UI", 10F);
-            SearchButton.Location = new Point(713, 16);
+            SearchButton.Location = new Point(1023, 27);
+            SearchButton.Margin = new Padding(4, 5, 4, 5);
             SearchButton.Name = "SearchButton";
-            SearchButton.Size = new Size(75, 29);
+            SearchButton.Size = new Size(107, 39);
             SearchButton.TabIndex = 2;
             SearchButton.Text = "Search";
             SearchButton.UseVisualStyleBackColor = true;
@@ -59,28 +62,46 @@
             // 
             ResultGridView.AllowUserToAddRows = false;
             ResultGridView.AllowUserToDeleteRows = false;
+            ResultGridView.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             ResultGridView.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
-            ResultGridView.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllHeaders;
+            ResultGridView.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCells;
             ResultGridView.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            ResultGridView.Dock = DockStyle.Bottom;
-            ResultGridView.Location = new Point(0, 51);
+            ResultGridView.Location = new Point(17, 76);
+            ResultGridView.Margin = new Padding(4, 5, 4, 5);
             ResultGridView.Name = "ResultGridView";
             ResultGridView.ReadOnly = true;
-            ResultGridView.Size = new Size(800, 399);
+            ResultGridView.RowHeadersWidth = 62;
+            ResultGridView.Size = new Size(1113, 634);
             ResultGridView.TabIndex = 3;
+            // 
+            // ExecutionTimeLabel
+            // 
+            ExecutionTimeLabel.AutoSize = true;
+            ExecutionTimeLabel.Dock = DockStyle.Bottom;
+            ExecutionTimeLabel.Font = new Font("Segoe UI", 9F, FontStyle.Bold | FontStyle.Italic, GraphicsUnit.Point, 0);
+            ExecutionTimeLabel.ForeColor = Color.DarkGreen;
+            ExecutionTimeLabel.Location = new Point(0, 715);
+            ExecutionTimeLabel.Name = "ExecutionTimeLabel";
+            ExecutionTimeLabel.Padding = new Padding(5);
+            ExecutionTimeLabel.Size = new Size(171, 35);
+            ExecutionTimeLabel.TabIndex = 4;
+            ExecutionTimeLabel.Text = "Execution Time: 0";
+            ExecutionTimeLabel.TextAlign = ContentAlignment.BottomRight;
             // 
             // Form1
             // 
-            AutoScaleDimensions = new SizeF(7F, 15F);
+            AutoScaleDimensions = new SizeF(10F, 25F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(800, 450);
+            ClientSize = new Size(1143, 750);
+            Controls.Add(ExecutionTimeLabel);
             Controls.Add(ResultGridView);
             Controls.Add(SearchButton);
             Controls.Add(SearchBox);
+            Margin = new Padding(4, 5, 4, 5);
             Name = "Form1";
             StartPosition = FormStartPosition.CenterScreen;
             Text = "EmbeddingGemma Test";
-            Load += Form1_Load;
+            Load += Form_Load;
             ((System.ComponentModel.ISupportInitialize)ResultGridView).EndInit();
             ResumeLayout(false);
             PerformLayout();
@@ -91,5 +112,6 @@
         private DataGridView ResultGridView;
         private TextBox SearchBox;
         private Button SearchButton;
+        private Label ExecutionTimeLabel;
     }
 }

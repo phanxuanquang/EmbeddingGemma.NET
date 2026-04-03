@@ -1,5 +1,6 @@
 <Solution>
   <Folder Name="/Solution Items/">
+    <File Path="Initialize-Embedding-Resources.ps1" />
     <File Path="README.md" />
   </Folder>
   <Project Path="EmbeddingGemma.DemoApp/EmbeddingGemma.DemoApp.csproj" Id="297ff234-7ee3-45c3-ae42-17bd6a2fff77" />

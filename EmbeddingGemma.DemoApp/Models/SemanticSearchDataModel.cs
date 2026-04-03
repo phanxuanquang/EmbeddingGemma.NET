@@ -7,13 +7,13 @@ namespace EmbeddingGemma.DemoApp.Models
     {
         [VectorStoreKey]
         [TextSearchResultName]
-        public Guid Key { get; init; } = Guid.NewGuid();
+        public int Key { get; init; }
 
         [VectorStoreData]
         [TextSearchResultValue]
-        public required string Text { get; init; }
+        public required WindowsEventLog Data { get; init; }
 
         [VectorStoreVector(768)]
-        public ReadOnlyMemory<float> Embedding { get; init; }
+        public ReadOnlyMemory<float> Embedding { get; init; } // The embedding vector for this record, which will be generated and stored in the vector store.
     }
 }
