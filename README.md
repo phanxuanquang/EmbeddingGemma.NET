@@ -2,7 +2,7 @@
 
 ![EmbeddingGemma](https://ollama.com/assets/library/embeddinggemma/9a20d963-4bf1-4177-9568-ca5d53a2d14e)
 
-**Run Google DeepMind's EmbeddingGemma-300m embedding model fully locally in your .NET app — zero API cost, zero data leakage, zero cloud dependency.**
+Run Google DeepMind's EmbeddingGemma-300m embedding model fully locally and natively in your .NET app with zero API cost, zero data leakage, zero cloud dependency.
 
 EmbeddingGemma.NET provides two NuGet packages that plug local semantic search / vector search into any .NET 10 application, with first-class support for Microsoft Semantic Kernel and `Microsoft.Extensions.VectorData`.
 
