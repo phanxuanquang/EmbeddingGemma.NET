@@ -1,4 +1,5 @@
 # EmbeddingGemma.NET
+![NuGet Version](https://img.shields.io/nuget/v/EmbeddingGemma.Core) ![NuGet Downloads](https://img.shields.io/nuget/dt/EmbeddingGemma.Core)
 
 ![EmbeddingGemma](https://ollama.com/assets/library/embeddinggemma/9a20d963-4bf1-4177-9568-ca5d53a2d14e)
 
@@ -21,6 +22,17 @@ EmbeddingGemma.NET provides two NuGet packages that plug local semantic search /
 ---
 
 ## Installation
+
+| Package | Use when |
+|---|---|
+| `EmbeddingGemma.Core` | Building a plain .NET / ASP.NET Core app |
+| `EmbeddingGemma.SemanticKernel` | Using Microsoft Semantic Kernel |
+
+Further details can be found at [EmbeddingGemma.Core](https://www.nuget.org/packages/EmbeddingGemma.Core) and [EmbeddingGemma.SemanticKernel](https://www.nuget.org/packages/EmbeddingGemma.SemanticKernel) on Microsoft's NuGet Gallery.
+
+---
+
+## Local Model Initialization
 
 ### Prepare the ONNX model and tokenizer files.
 
@@ -50,27 +62,6 @@ Alternatively, you can run the included PowerShell script **once** to download t
 
 ```powershell
 .\Initialize-Embedding-Resources.ps1
-```
-
----
-
-## Installation
-
-| Package | Use when… |
-|---|---|
-| `EmbeddingGemma.Core` | Building a plain .NET / ASP.NET Core app |
-| `EmbeddingGemma.SemanticKernel` | Using Microsoft Semantic Kernel |
-
-### If your project uses Semantic Kernel:
-
-```bash
-dotnet add package EmbeddingGemma.SemanticKernel
-```
-
-### If your project does NOT use Semantic Kernel:
-
-```bash
-dotnet add package EmbeddingGemma.Core
 ```
 
 ---
