@@ -1,5 +1,6 @@
 <Solution>
   <Folder Name="/Solution Items/">
+    <File Path="icon.png" />
     <File Path="Initialize-Embedding-Resources.ps1" />
     <File Path="README.md" />
   </Folder>
