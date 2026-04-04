@@ -6,11 +6,13 @@
 
 **EmbeddingGemma.NET** provides .NET bindings for Google DeepMind's [EmbeddingGemma-300m](https://deepmind.google/models/gemma/embeddinggemma) model, enabling fully local, offline text embedding with no API key, no cloud dependency, and no data egress.
 
-A single NuGet package supports both plain `IServiceCollection` (ASP.NET Core / generic host) and Microsoft Semantic Kernel's `IKernelBuilder`. Further information about the NuGet package can be found on the [NuGet Gallery](https://www.nuget.org/packages/EmbeddingGemma.NET).
+A single NuGet package supports both plain `IServiceCollection` (ASP.NET Core / generic host) and Microsoft Semantic Kernel's `IKernelBuilder`.
 
 ```console
-.NET add package EmbeddingGemma.NET
+dotnet add package EmbeddingGemma.NET
 ```
+
+Further installation guidance for the NuGet package can be found on the [NuGet Gallery](https://www.nuget.org/packages/EmbeddingGemma.NET).
 
 ---
 
