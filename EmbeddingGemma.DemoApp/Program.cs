@@ -1,8 +1,9 @@
-using EmbeddingGemma.Core;
 using EmbeddingGemma.DemoApp.Services;
+using Microsoft.Extensions.AI;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.SemanticKernel;
+using phanxuanquang.SemanticKernel.Connectors.Onnx.Gemma;
 
 namespace EmbeddingGemma.DemoApp
 {
@@ -20,7 +21,7 @@ namespace EmbeddingGemma.DemoApp
                     // Use the in-memory vector store for quick demo purposes.
                     services.AddInMemoryVectorStore();
 
-                    services.AddGemmaTextEmbeddingGenerator(options =>
+                    services.AddGemmaOnnxEmbeddingGenerator(options =>
                     {
                         options.ModelDirectory = modelDir;
                     });
@@ -33,6 +34,7 @@ namespace EmbeddingGemma.DemoApp
 
             ApplicationConfiguration.Initialize();
             Application.Run(host.Services.GetRequiredService<MainForm>());
+
         }
     }
 }

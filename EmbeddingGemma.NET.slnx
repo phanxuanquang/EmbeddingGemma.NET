@@ -6,5 +6,4 @@
   </Folder>
   <Project Path="EmbeddingGemma.Core/EmbeddingGemma.Core.csproj" Id="51fe7377-60db-4d8b-94b1-33a6e72aa03b" />
   <Project Path="EmbeddingGemma.DemoApp/EmbeddingGemma.DemoApp.csproj" Id="297ff234-7ee3-45c3-ae42-17bd6a2fff77" />
-  <Project Path="EmbeddingGemma.SemanticKernel/EmbeddingGemma.SemanticKernel.csproj" />
 </Solution>

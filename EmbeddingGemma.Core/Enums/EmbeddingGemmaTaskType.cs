@@ -1,55 +1,54 @@
-﻿using EmbeddingGemma.Core.Attributes;
+﻿using phanxuanquang.SemanticKernel.Connectors.Onnx.Gemma.Attributes;
 
-namespace EmbeddingGemma.Core.Enums
+namespace phanxuanquang.SemanticKernel.Connectors.Onnx.Gemma.Enums;
+
+public enum EmbeddingGemmaTaskType : byte
 {
-    public enum EmbeddingGemmaTaskType : byte
-    {
-        [TaskPrefix("task: search result | query: ")]
-        Query,
+    [TaskPrefix("task: search result | query: ")]
+    Query,
 
-        [TaskPrefix("title: none | text: ")]
-        Document,
+    [TaskPrefix("title: none | text: ")]
+    Document,
 
-        [TaskPrefix("task: search result | query: ")]
-        BitextMining,
+    [TaskPrefix("task: search result | query: ")]
+    BitextMining,
 
-        [TaskPrefix("task: clustering | query: ")]
-        Clustering,
+    [TaskPrefix("task: clustering | query: ")]
+    Clustering,
 
-        [TaskPrefix("task: classification | query: ")]
-        Classification,
+    [TaskPrefix("task: classification | query: ")]
+    Classification,
 
-        [TaskPrefix("task: code retrieval | query: ")]
-        InstructionRetrieval,
+    [TaskPrefix("task: code retrieval | query: ")]
+    InstructionRetrieval,
 
-        [TaskPrefix("task: classification | query: ")]
-        MultilabelClassification,
+    [TaskPrefix("task: classification | query: ")]
+    MultilabelClassification,
 
-        [TaskPrefix("task: sentence similarity | query: ")]
-        PairClassification,
+    [TaskPrefix("task: sentence similarity | query: ")]
+    PairClassification,
 
-        [TaskPrefix("task: search result | query: ")]
-        Reranking,
+    [TaskPrefix("task: search result | query: ")]
+    Reranking,
 
-        [TaskPrefix("task: search result | query: ")]
-        Retrieval,
+    [TaskPrefix("task: search result | query: ")]
+    Retrieval,
 
-        [TaskPrefix("task: search result | query: ")]
-        RetrievalQuery,
+    [TaskPrefix("task: search result | query: ")]
+    RetrievalQuery,
 
-        [TaskPrefix("title: none | text: ")]
-        RetrievalDocument,
+    [TaskPrefix("title: none | text: ")]
+    RetrievalDocument,
 
-        [TaskPrefix("task: sentence similarity | query: ")]
-        SentenceSimilarity,
+    [TaskPrefix("task: sentence similarity | query: ")]
+    SentenceSimilarity,
 
-        [TaskPrefix("task: summarization | query: ")]
-        Summarization,
+    [TaskPrefix("task: summarization | query: ")]
+    Summarization,
 
-        [TaskPrefix("task: question answering | query: ")]
-        QuestionAnswering,
+    [TaskPrefix("task: question answering | query: ")]
+    QuestionAnswering,
 
-        [TaskPrefix("task: fact checking | query: ")]
-        FactVerification,
-    }
+    [TaskPrefix("task: fact checking | query: ")]
+    FactVerification,
 }

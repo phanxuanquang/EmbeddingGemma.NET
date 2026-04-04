@@ -1,7 +1,7 @@
-using EmbeddingGemma.Core.Enums;
 using Microsoft.Extensions.AI;
+using phanxuanquang.SemanticKernel.Connectors.Onnx.Gemma.Enums;
 
-namespace EmbeddingGemma.Core.Options;
+namespace phanxuanquang.SemanticKernel.Connectors.Onnx.Gemma.Services.Options;
 
 /// <summary>
 /// EmbeddingGemma-specific generation options that extend
@@ -10,7 +10,7 @@ namespace EmbeddingGemma.Core.Options;
 /// appropriate prompt prefix to every input value before running inference,
 /// so callers pass raw text rather than manually formatting prompts.
 /// </summary>
-public sealed class EmbeddingGemmaGenerationOptions : EmbeddingGenerationOptions
+public sealed class EmbeddingGemmaEmbeddingGenerationOptions : EmbeddingGenerationOptions
 {
     /// <summary>
     /// The task type whose prompt prefix is automatically prepended to every

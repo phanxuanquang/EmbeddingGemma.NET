@@ -1,9 +1,9 @@
-using EmbeddingGemma.Core.Enums;
-using EmbeddingGemma.Core.Options;
 using EmbeddingGemma.DemoApp.Models;
 using EmbeddingGemma.DemoApp.Services;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.VectorData;
+using phanxuanquang.SemanticKernel.Connectors.Onnx.Gemma.Enums;
+using phanxuanquang.SemanticKernel.Connectors.Onnx.Gemma.Services.Options;
 using System.Diagnostics;
 
 namespace EmbeddingGemma.DemoApp
@@ -45,7 +45,7 @@ namespace EmbeddingGemma.DemoApp
 
             var queryAsEmbedding = await _embeddingGenerator.GenerateAsync(
                 value: SearchBox.Text,
-                options: new EmbeddingGemmaGenerationOptions
+                options: new EmbeddingGemmaEmbeddingGenerationOptions
                 {
                     TaskType = EmbeddingGemmaTaskType.RetrievalQuery
                 });
@@ -162,7 +162,7 @@ namespace EmbeddingGemma.DemoApp
 
                 var embedding = await _embeddingGenerator.GenerateAsync(
                     value: $"Website title: {entry.Title}", // Use only the web title for semantic search 
-                    options: new EmbeddingGemmaGenerationOptions
+                    options: new EmbeddingGemmaEmbeddingGenerationOptions
                     {
                         TaskType = EmbeddingGemmaTaskType.RetrievalDocument
                     });

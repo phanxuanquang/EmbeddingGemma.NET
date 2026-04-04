@@ -1,19 +1,19 @@
-﻿using EmbeddingGemma.Core.Enums;
-using EmbeddingGemma.Core.Extensions;
-using EmbeddingGemma.Core.Options;
-using Microsoft.Extensions.AI;
+﻿using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Options;
 using Microsoft.ML.OnnxRuntime;
 using Microsoft.ML.OnnxRuntime.Tensors;
 using Microsoft.ML.Tokenizers;
+using phanxuanquang.SemanticKernel.Connectors.Onnx.Gemma.Enums;
+using phanxuanquang.SemanticKernel.Connectors.Onnx.Gemma.Extensions;
+using phanxuanquang.SemanticKernel.Connectors.Onnx.Gemma.Services.Options;
 using System.Buffers;
 
-namespace EmbeddingGemma.Core.Services
+namespace phanxuanquang.SemanticKernel.Connectors.Onnx.Gemma
 {
     /// <summary>
     /// Text embedding generation service that uses the EmbeddingGemma-300m model via ONNX Runtime.
     /// </summary>
-    public sealed class GemmaTextEmbeddingGenerationService : IEmbeddingGenerator<string, Embedding<float>>
+    public sealed class EmbeddingGemmaOnnxTextEmbeddingGenerationService : IEmbeddingGenerator<string, Embedding<float>>
     {
         private readonly InferenceSession _session;
         private readonly LlamaTokenizer _tokenizer;
@@ -23,15 +23,34 @@ namespace EmbeddingGemma.Core.Services
         private readonly string _embeddingOutputName;
 
         /// <summary>
+        /// The list of required files for the model to function properly. The service will validate the presence of these files in the specified model directory during initialization.
+        /// </summary>
+        public static readonly string[] RequiredFiles =
+        [
+            "tokenizer.json",
+            "tokenizer.model",
+            "tokenizer_config.json",
+            "model.onnx",
+            "model.onnx_data"
+        ];
+
+        /// <summary>
         /// Initializes the service using an options instance resolved from the DI container.
         /// </summary>
         /// <param name="options"></param>
         /// <exception cref="ArgumentNullException"></exception>
-        public GemmaTextEmbeddingGenerationService(IOptions<EmbeddingGemmaOptions> options) : this(options?.Value ?? throw new ArgumentNullException(nameof(options)))
+        public EmbeddingGemmaOnnxTextEmbeddingGenerationService(IOptions<EmbeddingGemmaOnnxOptions> options) : this(options?.Value ?? throw new ArgumentNullException(nameof(options)))
         {
         }
 
-        public GemmaTextEmbeddingGenerationService(EmbeddingGemmaOptions options)
+        /// <summary>
+        /// Initializes a new instance of the GemmaTextEmbeddingGenerationService class using the specified model options.
+        /// </summary>
+        /// <param name="options">The configuration options specifying the model directory and related settings. Cannot be null, and the model directory must exist and contain all required files.</param>
+        /// <exception cref="DirectoryNotFoundException">Thrown if the directory specified by the model options does not exist.</exception>
+        /// <exception cref="FileNotFoundException">Thrown if any required model file is missing from the specified model directory.</exception>
+        /// <exception cref="InvalidOperationException">Thrown if the model does not provide at least two output tensors as expected.</exception>
+        public EmbeddingGemmaOnnxTextEmbeddingGenerationService(EmbeddingGemmaOnnxOptions options)
         {
             ArgumentNullException.ThrowIfNull(options);
             var modelDirectory = options.ModelDirectory;
@@ -41,45 +60,39 @@ namespace EmbeddingGemma.Core.Services
             if (!Directory.Exists(modelDirectory))
                 throw new DirectoryNotFoundException($"Model directory not found: {modelDirectory}");
 
-            var tokenizerJsonPath = Path.Combine(modelDirectory, "tokenizer.json");
-            if (!File.Exists(tokenizerJsonPath))
-                throw new FileNotFoundException($"\"tokenizer.json\" file not found at the directory: {modelDirectory}");
+            foreach (var file in RequiredFiles)
+            {
+                var filePath = Path.Combine(modelDirectory, file);
+                if (!File.Exists(filePath))
+                    throw new FileNotFoundException($"\"{file}\" file not found at the directory: {modelDirectory}", filePath);
+            }
 
-            var tokenizerModelPath = Path.Combine(modelDirectory, "tokenizer.model");
-            if (!File.Exists(tokenizerModelPath))
-                throw new FileNotFoundException($"\"tokenizer.model\" file not found at the directory: {modelDirectory}");
-
-            var tokenizerConfigJsonPath = Path.Combine(modelDirectory, "tokenizer_config.json");
-            if (!File.Exists(tokenizerConfigJsonPath))
-                throw new FileNotFoundException($"\"tokenizer_config.json\" file not found at the directory: {modelDirectory}");
-
-            var modelOnnxPath = Path.Combine(modelDirectory, "model.onnx");
-            if (!File.Exists(modelOnnxPath))
-                throw new FileNotFoundException($"\"model.onnx\" file not found at the directory: {modelDirectory}");
-
-            var modelOnnxDataPath = Path.Combine(modelDirectory, "model.onnx_data");
-            if (!File.Exists(modelOnnxDataPath))
-                throw new FileNotFoundException($"\"model.onnx_data\" file not found at the directory: {modelDirectory}");
-
-            var sessionOptions = new SessionOptions
+            var inferenceSessionOptions = new SessionOptions
             {
                 GraphOptimizationLevel = GraphOptimizationLevel.ORT_ENABLE_ALL,
-                ExecutionMode = ExecutionMode.ORT_SEQUENTIAL,
+                IntraOpNumThreads = 0,
+                EnableCpuMemArena = true,
+                EnableMemoryPattern = true,
+                LogSeverityLevel = OrtLoggingLevel.ORT_LOGGING_LEVEL_ERROR
             };
 
-            _session = new InferenceSession(modelOnnxPath, sessionOptions);
+            inferenceSessionOptions.AddSessionConfigEntry("session.set_denormal_as_zero", "1");
+
+            _session = new InferenceSession(
+                modelPath: Path.Combine(modelDirectory, "model.onnx"),
+                options: inferenceSessionOptions);
+
             _hasTokenTypeIds = _session.InputMetadata.ContainsKey("token_type_ids");
 
-            var outputKeys = _session.OutputMetadata.Keys.ToList();
-            if (outputKeys.Count < 2)
+            var outputKeys = _session.OutputMetadata.Keys.ToArray();
+            if (outputKeys.Length < 2)
                 throw new InvalidOperationException($"Expected at least 2 model outputs (last_hidden_state + pooled embedding), but found: {string.Join(", ", outputKeys)}");
 
             _embeddingOutputName = outputKeys[1];
 
-            using var stream = File.OpenRead(tokenizerModelPath);
+            using var stream = File.OpenRead(Path.Combine(modelDirectory, "tokenizer.model"));
 
             _tokenizer = LlamaTokenizer.Create(stream, addBeginOfSentence: true, addEndOfSentence: true);
-
             _metadata = new EmbeddingGeneratorMetadata(
                 providerName: "Google DeepMind",
                 providerUri: new Uri("https://deepmind.google/models/gemma/embeddinggemma"),
@@ -98,7 +111,7 @@ namespace EmbeddingGemma.Core.Services
         {
             IEnumerable<string> inputs = values;
 
-            if (options is EmbeddingGemmaGenerationOptions gemmaOptions && gemmaOptions.TaskType.HasValue)
+            if (options is EmbeddingGemmaEmbeddingGenerationOptions gemmaOptions && gemmaOptions.TaskType.HasValue)
             {
                 var taskType = gemmaOptions.TaskType.Value;
                 var prefix = taskType is EmbeddingGemmaTaskType.Document or EmbeddingGemmaTaskType.RetrievalDocument

@@ -1,6 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <AssemblyName>phanxuanquang.SemanticKernel.Connectors.Onnx.Gemma</AssemblyName>
+    <RootNamespace>$(AssemblyName)</RootNamespace>
     <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
@@ -10,8 +12,8 @@
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
     <PackageTags>semantic kernel;onnx;gemma;embeddings;vector search;text search;embeddinggemma;semantic search</PackageTags>
-    <Title>embeddinggemma-300m for .NET</Title>
-    <Description>High-performance and high-efficiency local semantic search using Google's EmbeddingGemma-300 model</Description>
+    <Title>EmbeddingGemma for .NET</Title>
+    <Description>High-performance and high-efficiency local semantic search using Google's EmbeddingGemma model</Description>
     <Copyright>© 2026 Phan Xuan Quang / EmbeddingGemma for .NET</Copyright>
     <PackageProjectUrl>https://github.com/phanxuanquang/EmbeddingGemma.NET</PackageProjectUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
@@ -32,9 +34,9 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.5" />
     <PackageReference Include="Microsoft.Extensions.Options" Version="10.0.5" />
-    <PackageReference Include="Microsoft.Extensions.VectorData.Abstractions" Version="10.1.0" />
     <PackageReference Include="Microsoft.ML.OnnxRuntime" Version="1.24.4" />
     <PackageReference Include="Microsoft.ML.Tokenizers" Version="2.0.0" />
+    <PackageReference Include="Microsoft.SemanticKernel.Abstractions" Version="1.74.0" />
   </ItemGroup>
 
 </Project>

@@ -1,16 +1,20 @@
 # EmbeddingGemma.NET
 
-![NuGet Version](https://img.shields.io/nuget/v/EmbeddingGemma.Core) ![NuGet Downloads](https://img.shields.io/nuget/dt/EmbeddingGemma.Core)
+![NuGet Version](https://img.shields.io/nuget/v/phanxuanquang.SemanticKernel.Connectors.Onnx.Gemma) ![NuGet Downloads](https://img.shields.io/nuget/dt/phanxuanquang.SemanticKernel.Connectors.Onnx.Gemma)
 
 ![EmbeddingGemma](https://ollama.com/assets/library/embeddinggemma/9a20d963-4bf1-4177-9568-ca5d53a2d14e)
 
 **EmbeddingGemma.NET** provides .NET bindings for Google DeepMind's [EmbeddingGemma-300m](https://deepmind.google/models/gemma/embeddinggemma) model, enabling fully local, offline text embedding with no API key, no cloud dependency, and no data egress.
 
-Two NuGet packages are available: one for general .NET applications and one for Microsoft Semantic Kernel.
+A single NuGet package supports both plain `IServiceCollection` (ASP.NET Core / generic host) and Microsoft Semantic Kernel's `IKernelBuilder`. Further information about the NuGet package can be found on the [NuGet Gallery](https://www.nuget.org/packages/phanxuanquang.SemanticKernel.Connectors.Onnx.Gemma).
+
+```console
+dotnet add package phanxuanquang.SemanticKernel.Connectors.Onnx.Gemma
+```
 
 ---
 
-## Why EmbeddingGemma?
+## Why EmbeddingGemma.NET?
 
 | | |
 |---|---|
@@ -20,18 +24,6 @@ Two NuGet packages are available: one for general .NET applications and one for 
 | **High efficiency** | Be able to run on low-end devices without GPU and with as little as 4 GB of RAM, making it ideal for a wide range of applications and users |
 | **Multilingual** | Supports 100+ languages out of the box |
 | **Task-aware embeddings** | 15 built-in task types automatically apply the correct prompt prefix |
-
----
-
----
-
-## Installation
-
-| Package | Target scenario |
-|---|---|
-| [`EmbeddingGemma.Core`](https://www.nuget.org/packages/EmbeddingGemma.Core) | General .NET / ASP.NET Core applications |
-| [`EmbeddingGemma.SemanticKernel`](https://www.nuget.org/packages/EmbeddingGemma.SemanticKernel) | Microsoft Semantic Kernel integration |
-
 
 ---
 
@@ -76,24 +68,27 @@ The resulting directory must have the following structure:
 
 ### Dependency Registration
 
-**`EmbeddingGemma.Core` via `IServiceCollection`**
+**Via `IServiceCollection`** (ASP.NET Core / generic host)
 
 ```csharp
-using EmbeddingGemma.Core;
+using phanxuanquang.SemanticKernel.Connectors.Onnx.Gemma;
 
-// Registers IEmbeddingGenerator<string, Embedding<float>> as a singleton.
-builder.Services.AddGemmaTextEmbeddingGenerator(options => options.ModelDirectory = @"C:\path\to\model-directory");
+// Registers IEmbeddingGenerator<string, Embedding<float>> as a keyed singleton.
+builder.Services.AddGemmaOnnxEmbeddingGenerator(options => options.ModelDirectory = @"C:\path\to\model-directory");
+
+// Optional: keyed registration for multi-service scenarios.
+builder.Services.AddGemmaOnnxEmbeddingGenerator(options => options.ModelDirectory = @"C:\path\to\model-directory", serviceId: "gemma");
 ```
 
-**`EmbeddingGemma.SemanticKernel` via `IKernelBuilder`**
+**Via `IKernelBuilder`** (Microsoft Semantic Kernel)
 
 ```csharp
-using EmbeddingGemma.SemanticKernel;
+using phanxuanquang.SemanticKernel.Connectors.Onnx.Gemma;
 using Microsoft.SemanticKernel;
 
 var builder = Kernel.CreateBuilder();
 
-builder.AddGemmaTextEmbeddingGenerator(options => options.ModelDirectory = @"C:\path\to\model-directory");
+builder.AddGemmaOnnxEmbeddingGenerator(options => options.ModelDirectory = @"C:\path\to\model-directory");
 
 var kernel = builder.Build();
 ```
@@ -106,6 +101,8 @@ Resolve `IEmbeddingGenerator<string, Embedding<float>>` from the DI container an
 
 ```csharp
 using Microsoft.Extensions.AI;
+using phanxuanquang.SemanticKernel.Connectors.Onnx.Gemma.Enums;
+using phanxuanquang.SemanticKernel.Connectors.Onnx.Gemma.Services.Options;
 
 var generator = serviceProvider.GetRequiredService<IEmbeddingGenerator<string, Embedding<float>>>();
 
@@ -113,7 +110,7 @@ var generator = serviceProvider.GetRequiredService<IEmbeddingGenerator<string, E
 var embeddings = await generator.GenerateAsync(["Hello, world!"]);
 
 // With a task type — the appropriate prompt prefix is applied automatically.
-var options = new EmbeddingGemmaGenerationOptions 
+var options = new EmbeddingGemmaEmbeddingGenerationOptions 
 { 
     TaskType = EmbeddingGemmaTaskType.RetrievalQuery 
 };
@@ -123,7 +120,7 @@ var queryEmbeddings = await generator.GenerateAsync(["What is semantic search?"]
 For document embeddings, supply an optional `DocumentTitle` to improve retrieval quality:
 
 ```csharp
-var docOptions = new EmbeddingGemmaGenerationOptions
+var docOptions = new EmbeddingGemmaEmbeddingGenerationOptions
 {
     TaskType = EmbeddingGemmaTaskType.RetrievalDocument,
     DocumentTitle = "Introduction to Semantic Search"
@@ -136,12 +133,13 @@ var docEmbeddings = await generator.GenerateAsync(["Semantic search ranks result
 
 ## Task Types
 
-Set `EmbeddingGemmaGenerationOptions.TaskType` to have the service automatically prepend the correct prompt prefix for your scenario. When `TaskType` is `null`, no prefix is added.
+Set `EmbeddingGemmaEmbeddingGenerationOptions.TaskType` to have the service automatically prepend the correct prompt prefix for your scenario. When `TaskType` is `null`, no prefix is added.
 
 | `EmbeddingGemmaTaskType` | Intended use |
 |---|---|
 | `RetrievalQuery` | User-supplied search queries |
-| `RetrievalDocument` | Documents or passages being indexed |
+| `RetrievalDocument` | Documents or passages being indexed (no title) |
+| `Document` | Documents or passages being indexed (no title, alias) |
 | `Query` / `Retrieval` | General-purpose retrieval |
 | `QuestionAnswering` | Questions in a QA pipeline |
 | `FactVerification` | Claims requiring evidence lookup |
@@ -156,3 +154,21 @@ Set `EmbeddingGemmaGenerationOptions.TaskType` to have the service automatically
 For detailed guidance on prompt formatting, refer to:
 - [EmbeddingGemma Model Card — Prompt Instructions](https://ai.google.dev/gemma/docs/embeddinggemma/model_card#prompt-instructions)
 - [Using Prompts with EmbeddingGemma](https://ai.google.dev/gemma/docs/embeddinggemma/inference-embeddinggemma-with-sentence-transformers#using_prompts_with_embeddinggemma)
+
+---
+
+## Demo Application
+
+The repository also includes a Windows application (`EmbeddingGemma.DemoApp`) that demonstrates real-world semantic search over your browser history.
+
+**Features:**
+- Reads history from **Google Chrome**, **Microsoft Edge**, and **Mozilla Firefox** automatically
+- Embeds all history entries into an in-memory vector store on startup
+- Performs semantic search and returns top results by semantic similarity
+- Displays execution time and memory consumption per query
+
+**Quick Start:**
+1. Complete the [Model Setup](#model-setup) step so the `.embedding_resources` folder is present at the repository root.
+2. Open the solution and run `EmbeddingGemma.DemoApp`.
+3. Select a browser, choose a date range, and click **Load** to index your history.
+4. Type a query in natural language and click **Search**.

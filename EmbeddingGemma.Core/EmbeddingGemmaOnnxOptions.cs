@@ -1,9 +1,9 @@
-﻿namespace EmbeddingGemma.Core.Options;
+﻿namespace phanxuanquang.SemanticKernel.Connectors.Onnx.Gemma;
 
 /// <summary>
 /// The options used to configure <see cref="GemmaTextEmbeddingGenerationService"/>. Currently
 /// </summary>
-public class EmbeddingGemmaOptions
+public sealed class EmbeddingGemmaOnnxOptions
 {
     /// <summary>
     /// The directory where the model files are stored. This is required and must be set by the caller.
