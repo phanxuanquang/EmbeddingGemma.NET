@@ -11,7 +11,7 @@
     <PackageTags>semantic kernel;onnx;gemma;embeddings;vector search;text search;embeddinggemma;semantic search</PackageTags>
     <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
     <Title>embeddinggemma-300m for .NET</Title>
-    <Description>The .NET SKD to integrate local semantic search using Google's EmbeddingGemma model</Description>
+    <Description>High-performance and high-efficiency local semantic search using Google's EmbeddingGemma-300 model; Microsoft's Semantic Kernel compatible</Description>
     <Copyright>© 2026 Phan Xuan Quang / EmbeddingGemma for .NET</Copyright>
     <PackageProjectUrl>https://github.com/phanxuanquang/EmbeddingGemma.NET</PackageProjectUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
