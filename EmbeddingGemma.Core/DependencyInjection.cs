@@ -3,7 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.SemanticKernel;
 
-namespace phanxuanquang.SemanticKernel.Connectors.Onnx.Gemma;
+namespace PhanXuanQuang.AI.LocalEmbeddings.EmbeddingGemma;
 
 public static class DependencyInjection
 {

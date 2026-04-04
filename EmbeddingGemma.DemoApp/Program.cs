@@ -3,7 +3,7 @@ using Microsoft.Extensions.AI;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.SemanticKernel;
-using phanxuanquang.SemanticKernel.Connectors.Onnx.Gemma;
+using PhanXuanQuang.AI.LocalEmbeddings.EmbeddingGemma;
 
 namespace EmbeddingGemma.DemoApp
 {

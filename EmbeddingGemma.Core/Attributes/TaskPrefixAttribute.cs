@@ -1,4 +1,4 @@
-﻿namespace phanxuanquang.SemanticKernel.Connectors.Onnx.Gemma.Attributes;
+﻿namespace PhanXuanQuang.AI.LocalEmbeddings.EmbeddingGemma.Attributes;
 
 internal class TaskPrefixAttribute(string prefix) : Attribute
 {

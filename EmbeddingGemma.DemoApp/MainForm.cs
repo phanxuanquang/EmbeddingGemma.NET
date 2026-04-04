@@ -2,8 +2,8 @@ using EmbeddingGemma.DemoApp.Models;
 using EmbeddingGemma.DemoApp.Services;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.VectorData;
-using phanxuanquang.SemanticKernel.Connectors.Onnx.Gemma.Enums;
-using phanxuanquang.SemanticKernel.Connectors.Onnx.Gemma.Services.Options;
+using PhanXuanQuang.AI.LocalEmbeddings.EmbeddingGemma.Enums;
+using PhanXuanQuang.AI.LocalEmbeddings.EmbeddingGemma.Services.Options;
 using System.Diagnostics;
 
 namespace EmbeddingGemma.DemoApp

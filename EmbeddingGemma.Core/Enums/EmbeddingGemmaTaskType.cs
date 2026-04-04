@@ -1,6 +1,6 @@
-﻿using phanxuanquang.SemanticKernel.Connectors.Onnx.Gemma.Attributes;
+﻿using PhanXuanQuang.AI.LocalEmbeddings.EmbeddingGemma.Attributes;
 
-namespace phanxuanquang.SemanticKernel.Connectors.Onnx.Gemma.Enums;
+namespace PhanXuanQuang.AI.LocalEmbeddings.EmbeddingGemma.Enums;
 
 public enum EmbeddingGemmaTaskType : byte
 {

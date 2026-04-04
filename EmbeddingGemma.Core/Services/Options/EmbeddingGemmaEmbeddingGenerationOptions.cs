@@ -1,7 +1,7 @@
 using Microsoft.Extensions.AI;
-using phanxuanquang.SemanticKernel.Connectors.Onnx.Gemma.Enums;
+using PhanXuanQuang.AI.LocalEmbeddings.EmbeddingGemma.Enums;
 
-namespace phanxuanquang.SemanticKernel.Connectors.Onnx.Gemma.Services.Options;
+namespace PhanXuanQuang.AI.LocalEmbeddings.EmbeddingGemma.Services.Options;
 
 /// <summary>
 /// EmbeddingGemma-specific generation options that extend

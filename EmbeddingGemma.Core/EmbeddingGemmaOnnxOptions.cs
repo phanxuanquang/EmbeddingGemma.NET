@@ -1,4 +1,4 @@
-﻿namespace phanxuanquang.SemanticKernel.Connectors.Onnx.Gemma;
+﻿namespace PhanXuanQuang.AI.LocalEmbeddings.EmbeddingGemma;
 
 /// <summary>
 /// The options used to configure <see cref="GemmaTextEmbeddingGenerationService"/>. Currently

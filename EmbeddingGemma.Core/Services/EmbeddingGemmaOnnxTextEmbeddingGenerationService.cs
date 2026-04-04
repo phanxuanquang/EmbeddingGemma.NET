@@ -3,12 +3,12 @@ using Microsoft.Extensions.Options;
 using Microsoft.ML.OnnxRuntime;
 using Microsoft.ML.OnnxRuntime.Tensors;
 using Microsoft.ML.Tokenizers;
-using phanxuanquang.SemanticKernel.Connectors.Onnx.Gemma.Enums;
-using phanxuanquang.SemanticKernel.Connectors.Onnx.Gemma.Extensions;
-using phanxuanquang.SemanticKernel.Connectors.Onnx.Gemma.Services.Options;
+using PhanXuanQuang.AI.LocalEmbeddings.EmbeddingGemma.Enums;
+using PhanXuanQuang.AI.LocalEmbeddings.EmbeddingGemma.Extensions;
+using PhanXuanQuang.AI.LocalEmbeddings.EmbeddingGemma.Services.Options;
 using System.Buffers;
 
-namespace phanxuanquang.SemanticKernel.Connectors.Onnx.Gemma
+namespace PhanXuanQuang.AI.LocalEmbeddings.EmbeddingGemma
 {
     /// <summary>
     /// Text embedding generation service that uses the EmbeddingGemma-300m model via ONNX Runtime.

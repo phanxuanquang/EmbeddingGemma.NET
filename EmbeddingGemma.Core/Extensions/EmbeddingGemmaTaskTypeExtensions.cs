@@ -1,9 +1,9 @@
-﻿using phanxuanquang.SemanticKernel.Connectors.Onnx.Gemma.Attributes;
-using phanxuanquang.SemanticKernel.Connectors.Onnx.Gemma.Enums;
+﻿using PhanXuanQuang.AI.LocalEmbeddings.EmbeddingGemma.Attributes;
+using PhanXuanQuang.AI.LocalEmbeddings.EmbeddingGemma.Enums;
 using System.Collections.Frozen;
 using System.Reflection;
 
-namespace phanxuanquang.SemanticKernel.Connectors.Onnx.Gemma.Extensions;
+namespace PhanXuanQuang.AI.LocalEmbeddings.EmbeddingGemma.Extensions;
 
 public static class EmbeddingGemmaTaskTypeExtensions
 {
