@@ -1,11 +1,12 @@
 # EmbeddingGemma.NET
+
 ![NuGet Version](https://img.shields.io/nuget/v/EmbeddingGemma.Core) ![NuGet Downloads](https://img.shields.io/nuget/dt/EmbeddingGemma.Core)
 
 ![EmbeddingGemma](https://ollama.com/assets/library/embeddinggemma/9a20d963-4bf1-4177-9568-ca5d53a2d14e)
 
-Run Google DeepMind's EmbeddingGemma-300m embedding model fully locally and natively in your .NET app with zero API cost, zero data leakage, zero cloud dependency.
+**EmbeddingGemma.NET** provides .NET bindings for Google DeepMind's [EmbeddingGemma-300m](https://deepmind.google/models/gemma/embeddinggemma) model, enabling fully local, offline text embedding with no API key, no cloud dependency, and no data egress.
 
-EmbeddingGemma.NET provides two NuGet packages that plug local semantic search / vector search into any .NET 10 application, with first-class support for Microsoft Semantic Kernel and `Microsoft.Extensions.VectorData`.
+Two NuGet packages are available: one for general .NET applications and one for Microsoft Semantic Kernel.
 
 ---
 
@@ -13,44 +14,55 @@ EmbeddingGemma.NET provides two NuGet packages that plug local semantic search /
 
 | | |
 |---|---|
-| **Zero runtime cost** | Runs locally on your device without further setups |
-| **Privacy-first** | Your data never leaves the machine |
-| **State-of-the-art accuracy** | [#1 open multilingual embedding model under 500 M parameters on MTEB](https://deepmind.google/models/gemma/embeddinggemma/#performance) |
-| **100+ languages compatibility** | Multilingual out-of-the-box |
-| **Instructed embeddings** | Pre-defined prompt prefixing for 15 task types (e.g., retrieval, QA, classification, clustering) |
+| **No runtime cost** | Runs on-device, no API calls or external services required |
+| **Privacy first** | All inference is performed locally; no data leaves the machine |
+| **Top-class accuracy** | GemmaEmbedding is the [top #1 ranked among open multilingual embedding models under 500M parameters on MTEB](https://deepmind.google/models/gemma/embeddinggemma/#performance) |
+| **High efficiency** | Be able to run on low-end devices without GPU and with as little as 4 GB of RAM, making it ideal for a wide range of applications and users |
+| **Multilingual** | Supports 100+ languages out of the box |
+| **Task-aware embeddings** | 15 built-in task types automatically apply the correct prompt prefix |
+
+---
 
 ---
 
 ## Installation
 
-| Package | Use when |
+| Package | Target scenario |
 |---|---|
-| `EmbeddingGemma.Core` | Building a plain .NET / ASP.NET Core app |
-| `EmbeddingGemma.SemanticKernel` | Using Microsoft Semantic Kernel |
+| [`EmbeddingGemma.Core`](https://www.nuget.org/packages/EmbeddingGemma.Core) | General .NET / ASP.NET Core applications |
+| [`EmbeddingGemma.SemanticKernel`](https://www.nuget.org/packages/EmbeddingGemma.SemanticKernel) | Microsoft Semantic Kernel integration |
 
-Further details can be found at [EmbeddingGemma.Core](https://www.nuget.org/packages/EmbeddingGemma.Core) and [EmbeddingGemma.SemanticKernel](https://www.nuget.org/packages/EmbeddingGemma.SemanticKernel) on Microsoft's NuGet Gallery.
 
 ---
 
-## Local Model Initialization
+## Model Setup
 
-### Prepare the ONNX model and tokenizer files.
+The ONNX model and tokenizer files must be present on disk before the service can be used. They are hosted at **[onnx-community/embeddinggemma-300m-ONNX](https://huggingface.co/onnx-community/embeddinggemma-300m-ONNX/tree/main)** on Hugging Face.
 
-The pre-exported ONNX model is hosted at **[onnx-community/embeddinggemma-300m-ONNX](https://huggingface.co/onnx-community/embeddinggemma-300m-ONNX/tree/main)** on Hugging Face. To run the model locally, you need to download the ONNX weights and tokenizer files as listed below:
+### Option A — PowerShell script (recommended)
 
-| File to download | Source path in the repo | Size |
-|-----------------|------------------------|------|
-| `model.onnx` | [`onnx/model.onnx`](https://huggingface.co/onnx-community/embeddinggemma-300m-ONNX/resolve/main/onnx/model.onnx?download=true) | ~480 kB |
+Run the included script once from the repository root. It downloads all required files into a `.embedding_resources` folder by default; pass `-OutputPath` to use a different location.
+
+```powershell
+.\Initialize-Embedding-Resources.ps1
+```
+
+### Option B — Manual download
+
+Manually download the following files and place them in the same directory:
+
+| File | Download link | Size |
+|---|---|---|
+| `model.onnx` | [`onnx/model.onnx`](https://huggingface.co/onnx-community/embeddinggemma-300m-ONNX/resolve/main/onnx/model.onnx?download=true) | ~480 KB |
 | `model.onnx_data` | [`onnx/model.onnx_data`](https://huggingface.co/onnx-community/embeddinggemma-300m-ONNX/resolve/main/onnx/model.onnx_data?download=true) | ~1.23 GB |
 | `tokenizer.json` | [`tokenizer.json`](https://huggingface.co/onnx-community/embeddinggemma-300m-ONNX/resolve/main/tokenizer.json?download=true) | ~20 MB |
 | `tokenizer.model` | [`tokenizer.model`](https://huggingface.co/onnx-community/embeddinggemma-300m-ONNX/resolve/main/tokenizer.model?download=true) | ~4.7 MB |
 | `tokenizer_config.json` | [`tokenizer_config.json`](https://huggingface.co/onnx-community/embeddinggemma-300m-ONNX/resolve/main/tokenizer_config.json?download=true) | ~1.2 MB |
 
-
-Your folder should look like this:
+The resulting directory must have the following structure:
 
 ```
-embeddinggemma-onnx/
+<model-directory>/
 ├── model.onnx
 ├── model.onnx_data
 ├── tokenizer.json
@@ -58,25 +70,22 @@ embeddinggemma-onnx/
 └── tokenizer_config.json
 ```
 
-Alternatively, you can run the included PowerShell script **once** to download them from Hugging Face as well. By default, it will create a folder named `.embedding_resources` in the same directory as the script, but you can specify any path you like.
-
-```powershell
-.\Initialize-Embedding-Resources.ps1
-```
-
 ---
 
-## Usage Guide
+## Usage
 
-#### With `IServiceCollection` (Core)
+### Dependency Registration
+
+**`EmbeddingGemma.Core` via `IServiceCollection`**
 
 ```csharp
 using EmbeddingGemma.Core;
 
-builder.Services.AddGemmaTextEmbeddingGenerator(options => options.ModelDirectory = @"C:\path\to\.embedding_resources");
+// Registers IEmbeddingGenerator<string, Embedding<float>> as a singleton.
+builder.Services.AddGemmaTextEmbeddingGenerator(options => options.ModelDirectory = @"C:\path\to\model-directory");
 ```
 
-#### With Semantic Kernel (`IKernelBuilder`)
+**`EmbeddingGemma.SemanticKernel` via `IKernelBuilder`**
 
 ```csharp
 using EmbeddingGemma.SemanticKernel;
@@ -84,32 +93,66 @@ using Microsoft.SemanticKernel;
 
 var builder = Kernel.CreateBuilder();
 
-builder.AddGemmaTextEmbeddingGenerator(options => options.ModelDirectory = @"C:\path\to\.embedding_resources");
+builder.AddGemmaTextEmbeddingGenerator(options => options.ModelDirectory = @"C:\path\to\model-directory");
 
 var kernel = builder.Build();
-
-var embeddingGenerator = kernel.Services.GetRequiredService<IEmbeddingGenerator<string, Embedding<float>>>();
 ```
 
 ---
 
-## Prompting with Task Types
+### Generating Embeddings
 
-Pass `EmbeddingGemmaGenerationOptions.TaskType` to get embeddings optimized for your specific use case. When omitted, no prefix is added.
+Resolve `IEmbeddingGenerator<string, Embedding<float>>` from the DI container and call `GenerateAsync`.
 
-| `EmbeddingGemmaTaskType` | Best for |
+```csharp
+using Microsoft.Extensions.AI;
+
+var generator = serviceProvider.GetRequiredService<IEmbeddingGenerator<string, Embedding<float>>>();
+
+// Without a task type — no prompt prefix is added.
+var embeddings = await generator.GenerateAsync(["Hello, world!"]);
+
+// With a task type — the appropriate prompt prefix is applied automatically.
+var options = new EmbeddingGemmaGenerationOptions 
+{ 
+    TaskType = EmbeddingGemmaTaskType.RetrievalQuery 
+};
+var queryEmbeddings = await generator.GenerateAsync(["What is semantic search?"], options);
+```
+
+For document embeddings, supply an optional `DocumentTitle` to improve retrieval quality:
+
+```csharp
+var docOptions = new EmbeddingGemmaGenerationOptions
+{
+    TaskType = EmbeddingGemmaTaskType.RetrievalDocument,
+    DocumentTitle = "Introduction to Semantic Search"
+};
+
+var docEmbeddings = await generator.GenerateAsync(["Semantic search ranks results by meaning..."], docOptions);
+```
+
+---
+
+## Task Types
+
+Set `EmbeddingGemmaGenerationOptions.TaskType` to have the service automatically prepend the correct prompt prefix for your scenario. When `TaskType` is `null`, no prefix is added.
+
+| `EmbeddingGemmaTaskType` | Intended use |
 |---|---|
-| `RetrievalQuery` | User search queries |
-| `RetrievalDocument` | Documents / pages being indexed |
-| `QuestionAnswering` | Questions in a QA system |
-| `FactVerification` | Claims that need evidence lookup |
-| `Classification` | Text sentiment, spam detection, labelling |
-| `Clustering` | Grouping similar documents by topic |
-| `SentenceSimilarity` / `PairClassification` | Direct text-to-text similarity |
-| `Summarization` | Texts being summarized |
-| `InstructionRetrieval` | Natural-language → code-block search |
-| `BitextMining` | Parallel sentence detection across languages |
+| `RetrievalQuery` | User-supplied search queries |
+| `RetrievalDocument` | Documents or passages being indexed |
+| `Query` / `Retrieval` | General-purpose retrieval |
+| `QuestionAnswering` | Questions in a QA pipeline |
+| `FactVerification` | Claims requiring evidence lookup |
+| `Classification` / `MultilabelClassification` | Sentiment, spam detection, labelling |
+| `Clustering` | Grouping documents by topic |
+| `SentenceSimilarity` / `PairClassification` | Direct text-to-text similarity comparison |
+| `Summarization` | Texts intended for summarization |
+| `InstructionRetrieval` | Natural-language-to-code retrieval |
+| `Reranking` | Re-scoring a candidate result set |
+| `BitextMining` | Parallel sentence alignment across languages |
 
-For effective usage of task types, refer to the following resources:
-* [EmbeddingGemma: Prompt Instructions](https://ai.google.dev/gemma/docs/embeddinggemma/model_card#prompt-instructions)
-* [Using Prompts with EmbeddingGemma](https://ai.google.dev/gemma/docs/embeddinggemma/inference-embeddinggemma-with-sentence-transformers#using_prompts_with_embeddinggemma)
+For detailed guidance on prompt formatting, refer to:
+- [EmbeddingGemma Model Card — Prompt Instructions](https://ai.google.dev/gemma/docs/embeddinggemma/model_card#prompt-instructions)
+- [Using Prompts with EmbeddingGemma](https://ai.google.dev/gemma/docs/embeddinggemma/inference-embeddinggemma-with-sentence-transformers#using_prompts_with_embeddinggemma)
